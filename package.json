@@ -1,0 +1,23 @@
+{
+  "name": "figma-import",
+  "version": "1.0.0",
+  "description": "",
+  "main": "figma-import.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/afweb20/figma-import.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/afweb20/figma-import/issues"
+  },
+  "homepage": "https://github.com/afweb20/figma-import#readme",
+  "dependencies": {
+    "axios": "^0.26.1",
+    "express": "^4.17.3"
+  }
+}
