@@ -2,14 +2,15 @@ const PERSONAL_ACCESS_TOKEN = "367581-50354355-43eb-4834-a520-da304dbe7ae3";
 const PORT = 8000;
 
 
-// 1 --- http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/636:3
+// 1 --- http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/636:3/2
+// 2 --- http://localhost:8000/P9rADa5f4Rve6NoTjPUG5B/183%3A3/2
 
 var express = require("express");
 var app = express();
 var router = express.Router();
 var axios = require("axios");
 
-app.get("/:project_id/:node_id", function (req, res) {
+app.get("/:project_id/:node_id/:view", function (req, res) {
 
   axios({
     method: "get",
@@ -40,12 +41,19 @@ app.get("/:project_id/:node_id", function (req, res) {
     html += "</div>";
     html += "<div> " + JSON.stringify(sitecontent) + "</div>";
 
-    // res.send(response.data.nodes[req.params.node_id].document);
-    // res.send(html);
-
 
     var htmlBlock = "<div style='display: flex;align-items: center;justify-content: center;'><div style='position: relative'>" + renderHtml(sitecontent) + "</div></div>";
-    res.send(htmlBlock);
+    
+
+    // Только для отображения на этапе разработки, потом нужно убрать 
+    if (req.params.view == 0) {
+      res.send(response.data.nodes[req.params.node_id].document);
+    } else if (req.params.view == 1) {
+      res.send(html);
+    } else if (req.params.view == 2) {
+      res.send(htmlBlock);
+    }
+
     
   });
 
@@ -67,7 +75,6 @@ var generateElementid = function(len, charSet) {
   return randomString.toLocaleLowerCase();
 
 }
-
 
 var generateSitecontent = function (object) {
 
@@ -118,7 +125,7 @@ var generateSitecontent = function (object) {
       }
 
     }
-    
+
 
     // fills - Array of objects
     // An array of fill paints applied to the node
@@ -128,36 +135,7 @@ var generateSitecontent = function (object) {
 
         if (object[key][0]["color"]) {
 
-          var r = 0;
-          var g = 0;
-          var b = 0;
-          var a = 0;
-          
-          if (object[key][0]["color"]["r"]) {
-
-            r = object[key][0]["color"]["r"] * 255;
-
-          }
-
-          if (object[key][0]["color"]["g"]) {
-
-            g = object[key][0]["color"]["g"] * 255;
-
-          }
-
-          if (object[key][0]["color"]["b"]) {
-
-            b = object[key][0]["color"]["b"] * 255;
-
-          }
-
-          if (object[key][0]["color"]["a"]) {
-
-            a = object[key][0]["color"]["a"];
-
-          }
-
-          sitecontent[elementid]["style"]["background-color"] = "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
+          sitecontent[elementid]["style"]["background-color"] = generateRgbaString(object[key][0]["color"]);
 
         }
 
@@ -171,7 +149,7 @@ var generateSitecontent = function (object) {
 
 }
 
-function renderHtml (sitecontent) {
+var renderHtml = function (sitecontent) {
 
   var keys = Object.keys(sitecontent);
 
@@ -193,6 +171,41 @@ function renderHtml (sitecontent) {
   }
 
   return html;
+}
+
+var generateRgbaString = function (color_object) {
+
+  var r = 0;
+  var g = 0;
+  var b = 0;
+  var a = 0;
+
+  if (color_object["r"]) {
+
+    r = color_object["r"] * 255;
+
+  }
+
+  if (color_object["g"]) {
+
+    g = color_object["g"] * 255;
+
+  }
+
+  if (color_object["b"]) {
+
+    b = color_object["b"] * 255;
+
+  }
+
+  if (color_object["a"]) {
+
+    a = color_object["a"];
+
+  }
+
+  return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
+
 }
 
 app.listen(PORT, function () {
