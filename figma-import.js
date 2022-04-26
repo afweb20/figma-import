@@ -12,44 +12,49 @@ var axios = require("axios");
 
 app.get("/:project_id/:node_id/:view", function (req, res) {
 
+  var projectId = req.params.project_id;
+  var nodeId = req.params.node_id;
+
   axios({
     method: "get",
-    url: "https://api.figma.com/v1/files/" + req.params.project_id + "/nodes?ids=" + req.params.node_id,
+    url: "https://api.figma.com/v1/files/" + projectId + "/nodes?ids=" + nodeId,
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
   }).then(function (response) {
 
     console.log("@@@@@@@@@@@@@@@@@@@@");
     console.log(response.data);
 
-    var sitecontent = [];
+    // var sitecontent = [];
+    // var elementid = generateElementid(32);
 
-    if (response.data) {
-      if (response.data.nodes) {
-        if (response.data.nodes[req.params.node_id]) {
-          if (response.data.nodes[req.params.node_id].document) {
 
-            console.log(response.data.nodes[req.params.node_id].document);
+    // if (response.data) {
+    //   if (response.data.nodes) {
+    //     if (response.data.nodes[nodeId]) {
+    //       if (response.data.nodes[nodeId].document) {
+
+    //         console.log(response.data.nodes[nodeId].document);
       
-            sitecontent = generateSitecontent(response.data.nodes[req.params.node_id].document);
+    //         sitecontent = generateSitecontent(response.data.nodes[nodeId].document, nodeId, elementid);
 
-          }
-        }
-      }
-    }
+    //       }
+    //     }
+    //   }
+    // }
 
-    var html = "<div>";
-    html += "</div>";
-    html += "<div> " + JSON.stringify(sitecontent) + "</div>";
+    // var html = "<div>";
+    // html += "</div>";
+    // html += "<div> " + JSON.stringify(sitecontent) + "</div>";
 
 
-    var htmlBlock = "<div style='display: flex;align-items: center;justify-content: center;'><div style='position: relative'>" + renderHtml(sitecontent) + "</div></div>";
+    var htmlBlock = renderHtml(response.data.nodes[nodeId].document, nodeId);
     
 
     // Только для отображения на этапе разработки, потом нужно убрать 
     if (req.params.view == 0) {
       res.send(response.data.nodes[req.params.node_id].document);
     } else if (req.params.view == 1) {
-      res.send(html);
+      // res.send(html);
     } else if (req.params.view == 2) {
       res.send(htmlBlock);
     }
@@ -60,7 +65,39 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
 });
 
 
-var generateElementid = function(len, charSet) {
+var renderHtml = function (object, node_id) {
+
+  var attributes = setHtmlAttributes(object);
+  var html = "<div " + attributes + ">";
+
+  if (object["children"]) {
+
+    if (object["children"].length > 0) {
+
+      console.log("child");
+      
+      for (var i = 0; i < object["children"].length; i++) {
+
+        html += renderHtml(object["children"][i]);
+
+      }
+
+    }
+
+  } else {
+
+    console.log("NO child");
+
+  }
+
+  html += "</div>";
+
+  return html;
+
+}
+
+
+var generateElementid = function (len, charSet) {
 
   var i, randomPoz, randomString;
   charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -76,12 +113,46 @@ var generateElementid = function(len, charSet) {
 
 }
 
-var generateSitecontent = function (object) {
+var setHtmlAttributes = function (object) {
+
+  var attributes = "";
+  var elem = {};
+  elem["elementid"] = generateElementid(32);
+  if (object.type) {
+    elem["class"] = "b-" + object.type.toLowerCase();
+  }
+  if (object.id) {
+    elem["node-id"] = object.id;
+  }
+
+  var keys = Object.keys(elem);
+
+  for (var i = 0; i < keys.length; i++) {
+
+    var key = keys[i];
+
+    attributes += " " + key + "='" + elem[key] + "'";
+
+  }
+
+  return attributes;
+
+}
+
+var generateSitecontent = function (object, node_id, elementid) {
 
   var sitecontent = {};
   var keys = Object.keys(object);
-  var elementid = generateElementid(32);
+  var isParentIframe = false;
   sitecontent[elementid] = {};
+
+  if (node_id) {
+    if (object.id){
+      if (object.id == node_id) {
+        isParentIframe = true;
+      }
+    }
+  }
 
   for (var i = 0; i < keys.length; i++) {
 
@@ -147,30 +218,6 @@ var generateSitecontent = function (object) {
 
   return sitecontent;
 
-}
-
-var renderHtml = function (sitecontent) {
-
-  var keys = Object.keys(sitecontent);
-
-  for (var i = 0; i < keys.length; i++) {
-
-    var key = keys[i];
-    var styleString = "";
-    var styleKeys = Object.keys(sitecontent[key]["style"]);
-
-    for (var sk = 0; sk < styleKeys.length; sk++) {
-
-      styleString += styleKeys[sk] + ":" + sitecontent[key]["style"][styleKeys[sk]] + ";"
-
-    }
-
-    var html = "<div elementid='" + key + "' style='" + styleString + "'> test </div>";
-    // sitecontent[key]
-
-  }
-
-  return html;
 }
 
 var generateRgbaString = function (color_object) {
