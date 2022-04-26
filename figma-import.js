@@ -74,8 +74,6 @@ var renderHtml = function (object, project_id, node_id) {
 
     if (object["children"].length > 0) {
 
-      console.log("child");
-
       for (var i = 0; i < object["children"].length; i++) {
 
         html += renderHtml(object["children"][i], project_id, node_id);
@@ -117,6 +115,7 @@ var setHtmlAttributes = function (object, project_id) {
 
   var attributes = "";
   var elem = {};
+  elem["style"] = {};
   if (object.type) {
     elem["class"] = "b-" + object.type.toLowerCase();
   }
@@ -124,6 +123,16 @@ var setHtmlAttributes = function (object, project_id) {
     elem["node-id"] = object.id;
     elem["elementid"] = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
   }
+  if (object.fills) {
+    if (object.fills.length > 0) {
+      if (object.fills[0]) {
+        if (object.fills[0]["color"]) {
+          elem["style"]["background-color"] = generateRgbaString(object.fills[0]["color"]);
+        }
+      }
+    }
+  }
+
 
   var keys = Object.keys(elem);
 
@@ -131,7 +140,31 @@ var setHtmlAttributes = function (object, project_id) {
 
     var key = keys[i];
 
-    attributes += " " + key + "='" + elem[key] + "'";
+    if (key == "style") {
+
+      var styleKeys = Object.keys(elem[key]);
+
+      if (styleKeys.length > 0) {
+
+        attributes += " style='";
+
+        for (var s = 0; s < styleKeys.length; s++) {
+
+          var k = styleKeys[s];
+
+          attributes += k + ": " + elem[key][k] + "; ";
+
+        }
+
+        attributes += "'";
+        
+      }
+      
+    } else {
+
+      attributes += " " + key + "='" + elem[key] + "'";
+
+    }
 
   }
   
@@ -251,7 +284,7 @@ var generateRgbaString = function (color_object) {
 
   }
 
-  return "rgba(" + r + ", " + g + ", " + b + ", " + a + ")";
+  return "rgba(" + r.toFixed(0) + ", " + g.toFixed(0) + ", " + b.toFixed(0) + ", " + a + ")";
 
 }
 
