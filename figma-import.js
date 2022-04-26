@@ -67,7 +67,7 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
 
 var renderHtml = function (object, project_id, node_id) {
 
-  var attributes = setHtmlAttributes(object, project_id);
+  var attributes = setHtmlAttributes(object, project_id, node_id);
   var html = "<div " + attributes + ">";
 
   if (object["children"]) {
@@ -111,17 +111,28 @@ var generateElementid = function (len, charSet) {
 
 }
 
-var setHtmlAttributes = function (object, project_id) {
+var setHtmlAttributes = function (object, project_id, node_id) {
 
   var attributes = "";
   var elem = {};
+  var parentX = 0;
+  var parentY = 0;
+
   elem["style"] = {};
   if (object.type) {
     elem["class"] = "b-" + object.type.toLowerCase();
   }
   if (object.id) {
+
     elem["node-id"] = object.id;
     elem["elementid"] = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
+
+    if (object.id == node_id) {
+      elem["style"]["position"] = "relative";
+    } else {
+      elem["style"]["position"] = "absolute";
+    }
+    
   }
   if (object.fills) {
     if (object.fills.length > 0) {
@@ -132,7 +143,29 @@ var setHtmlAttributes = function (object, project_id) {
       }
     }
   }
+  if (object.absoluteBoundingBox) {
+    
+    // if (object.id == node_id) {
 
+    //   parentX = object.absoluteBoundingBox.x;
+    //   parentY = object.absoluteBoundingBox.y;
+
+    // } else {
+
+    //   if (parentX) {
+
+    //     elem["style"]["left"] = (object.absoluteBoundingBox.x - parentX) + "px";
+
+    //   }
+
+    // }
+    if (object.absoluteBoundingBox.width) {
+      elem["style"]["width"] = object.absoluteBoundingBox.width.toString() + "px";
+    }
+    if (object.absoluteBoundingBox.height) {
+      elem["style"]["height"] = object.absoluteBoundingBox.height.toString() + "px";
+    }
+  }
 
   var keys = Object.keys(elem);
 
