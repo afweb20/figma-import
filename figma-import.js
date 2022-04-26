@@ -34,7 +34,7 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
     //       if (response.data.nodes[nodeId].document) {
 
     //         console.log(response.data.nodes[nodeId].document);
-      
+
     //         sitecontent = generateSitecontent(response.data.nodes[nodeId].document, nodeId, elementid);
 
     //       }
@@ -47,8 +47,8 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
     // html += "<div> " + JSON.stringify(sitecontent) + "</div>";
 
 
-    var htmlBlock = renderHtml(response.data.nodes[nodeId].document, nodeId);
-    
+    var htmlBlock = renderHtml(response.data.nodes[nodeId].document, projectId, nodeId);
+
 
     // Только для отображения на этапе разработки, потом нужно убрать 
     if (req.params.view == 0) {
@@ -65,9 +65,9 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
 });
 
 
-var renderHtml = function (object, node_id) {
+var renderHtml = function (object, project_id, node_id) {
 
-  var attributes = setHtmlAttributes(object);
+  var attributes = setHtmlAttributes(object, project_id);
   var html = "<div " + attributes + ">";
 
   if (object["children"]) {
@@ -75,10 +75,10 @@ var renderHtml = function (object, node_id) {
     if (object["children"].length > 0) {
 
       console.log("child");
-      
+
       for (var i = 0; i < object["children"].length; i++) {
 
-        html += renderHtml(object["children"][i]);
+        html += renderHtml(object["children"][i], project_id, node_id);
 
       }
 
@@ -113,16 +113,16 @@ var generateElementid = function (len, charSet) {
 
 }
 
-var setHtmlAttributes = function (object) {
+var setHtmlAttributes = function (object, project_id) {
 
   var attributes = "";
   var elem = {};
-  elem["elementid"] = generateElementid(32);
   if (object.type) {
     elem["class"] = "b-" + object.type.toLowerCase();
   }
   if (object.id) {
     elem["node-id"] = object.id;
+    elem["elementid"] = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
   }
 
   var keys = Object.keys(elem);
@@ -134,7 +134,7 @@ var setHtmlAttributes = function (object) {
     attributes += " " + key + "='" + elem[key] + "'";
 
   }
-
+  
   return attributes;
 
 }
@@ -147,7 +147,7 @@ var generateSitecontent = function (object, node_id, elementid) {
   sitecontent[elementid] = {};
 
   if (node_id) {
-    if (object.id){
+    if (object.id) {
       if (object.id == node_id) {
         isParentIframe = true;
       }
@@ -161,7 +161,7 @@ var generateSitecontent = function (object, node_id, elementid) {
     // type - String
     // The type of the node, refer to table below for details.
     if (key == "type") {
-      
+
       if (object[key] == "FRAME") {
 
         sitecontent[elementid]["classes"] = "fgm-node-type-frame";
@@ -178,7 +178,7 @@ var generateSitecontent = function (object, node_id, elementid) {
 
     }
 
-      
+
     // absoluteBoundingBox - Object
     // Bounding box of the node in absolute space coordinates
     if (key == "absoluteBoundingBox") {
