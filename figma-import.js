@@ -202,31 +202,10 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX) {
 
     } else {
 
-      if (parentX != null){
-
-        if (object.absoluteBoundingBox.x != closestParentX) {
-
-          if (closestParentX != null) {
-
-            elem["style"]["left"] = (object.absoluteBoundingBox.x - closestParentX) + "px";
-
-          } else {
-
-            elem["style"]["left"] = (object.absoluteBoundingBox.x - parentX) + "px";
-
-          }
-
-          console.log("@@@@@ parentX", closestParentX, object.absoluteBoundingBox.x, parentX) ;
-
-        } else {
-
-          elem["style"]["left"] = "0px";
-
-        }
-
-      }
+      elem["style"]["left"] = getElementLeftPosition(object, parentX, closestParentX);
 
     }
+
 
     if (object.absoluteBoundingBox.width) {
       elem["style"]["width"] = object.absoluteBoundingBox.width.toString() + "px";
@@ -387,6 +366,32 @@ var generateRgbaString = function (color_object) {
   }
 
   return "rgba(" + r.toFixed(0) + ", " + g.toFixed(0) + ", " + b.toFixed(0) + ", " + a + ")";
+
+}
+
+var getElementLeftPosition = function (object, parentX, closestParentX) {
+
+  if (parentX != null){
+
+    if (object.absoluteBoundingBox.x != closestParentX) {
+
+      if (closestParentX != null) {
+
+        return (object.absoluteBoundingBox.x - closestParentX) + "px";
+
+      } else {
+
+        return (object.absoluteBoundingBox.x - parentX) + "px";
+
+      }
+
+    } else {
+
+      return "0px";
+
+    }
+
+  }
 
 }
 
