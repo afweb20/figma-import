@@ -177,7 +177,8 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
     elem["elementid"] = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
 
     if (object.id == node_id) {
-      elem["style"]["position"] = "relative";    
+      elem["style"]["position"] = "relative"; //самый первый родитель, то есть - главный frame 
+      elem["style"]["overflow"] = "hidden";  //элементы могут выходить за пределы frame, поэтому overflow: hidden нужен
     } else {
       elem["style"]["position"] = "absolute";
     }
