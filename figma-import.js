@@ -51,7 +51,7 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
     // html += "<div> " + JSON.stringify(sitecontent) + "</div>";
 
 
-    var htmlBlock = renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null);
+    var htmlBlock = renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null);
 
 
     // Только для отображения на этапе разработки, потом нужно убрать 
@@ -69,11 +69,10 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
 });
 
 
-var renderHtml = function (object, project_id, node_id, closest_parent_x) {
+var renderHtml = function (object, project_id, node_id, closest_parent_x, closest_parent_y) {
 
   var closestParentX = closest_parent_x;
-
-  console.log("heeellloooo closestParentX", closestParentX);
+  var closestParentY = closest_parent_y;
 
   if (object.type.toLowerCase() == "vector222") {
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
@@ -107,7 +106,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x) {
     console.log("~~~~~~~~~");
   }
 
-  var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX);
+  var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX, closestParentY);
   var html = "<div " + attributes + ">";
 
   if (object["children"]) {
@@ -120,9 +119,15 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x) {
         }
       }
 
+      if (object.absoluteBoundingBox) {
+        if (object.absoluteBoundingBox.y) {
+          closestParentY = object.absoluteBoundingBox.y;
+        }
+      }
+
       for (var i = 0; i < object["children"].length; i++) {
 
-        html += renderHtml(object["children"][i], project_id, node_id, closestParentX);
+        html += renderHtml(object["children"][i], project_id, node_id, closestParentX, closestParentY);
 
       }
 
@@ -157,9 +162,7 @@ var generateElementid = function (len, charSet) {
 
 }
 
-var setHtmlAttributes = function (object, project_id, node_id, closestParentX) {
-
-  console.log("closestParentXclosestParentXclosestParentXclosestParentX closestParentX", closestParentX)
+var setHtmlAttributes = function (object, project_id, node_id, closestParentX, closestParentY) {
 
   var attributes = "";
   var elem = {};
@@ -196,23 +199,26 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX) {
       parentX = object.absoluteBoundingBox.x;
       parentY = object.absoluteBoundingBox.y;
 
-      console.log("parentX", parentX);
-      console.log("closestParentX", closestParentX);
-      console.log("parentY", parentY);
+      // console.log("parentX", parentX);
+      // console.log("closestParentX", closestParentX);
+      // console.log("parentY", parentY);
+      // console.log("closestParentY", closestParentY);
 
     } else {
 
       elem["style"]["left"] = getElementLeftPosition(object, parentX, closestParentX);
+      elem["style"]["top"] = getElementTopPosition(object, parentY, closestParentY);
 
     }
-
 
     if (object.absoluteBoundingBox.width) {
       elem["style"]["width"] = object.absoluteBoundingBox.width.toString() + "px";
     }
+
     if (object.absoluteBoundingBox.height) {
       elem["style"]["height"] = object.absoluteBoundingBox.height.toString() + "px";
     }
+
   }
 
   var keys = Object.keys(elem);
@@ -384,6 +390,36 @@ var getElementLeftPosition = function (object, parentX, closestParentX) {
         return (object.absoluteBoundingBox.x - parentX) + "px";
 
       }
+
+    } else {
+
+      return "0px";
+
+    }
+
+  }
+
+}
+
+var getElementTopPosition = function (object, parentY, closestParentY) {
+
+  if (parentX != null){
+
+    if (object.absoluteBoundingBox.y != closestParentY) {
+
+      var top1 = Math.abs(object.absoluteBoundingBox.y);
+
+      if (closestParentY != null) {
+
+        var top2 = Math.abs(closestParentY);
+
+      } else {
+
+        var top2 = Math.abs(parentY);
+
+      }
+
+      return (top2 - top1) + "px";
 
     } else {
 
