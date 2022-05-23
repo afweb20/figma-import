@@ -4,11 +4,15 @@ const PORT = 8000;
 
 // 1 --- http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/636:3/2
 // 2 --- http://localhost:8000/P9rADa5f4Rve6NoTjPUG5B/183%3A3/2
+// 3 --- http://localhost:8000/dms5Vr9yGfK445F3mncTz9/1%3A2/2
+
 
 var express = require("express");
 var app = express();
 var router = express.Router();
 var axios = require("axios");
+var parentX = null;
+var parentY = null;
 
 app.get("/:project_id/:node_id/:view", function (req, res) {
 
@@ -21,8 +25,8 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
   }).then(function (response) {
 
-    console.log("@@@@@@@@@@@@@@@@@@@@");
-    console.log(response.data);
+    // console.log("@@@@@@@@@@@@@@@@@@@@");
+    // console.log(response.data);
 
     // var sitecontent = [];
     // var elementid = generateElementid(32);
@@ -47,7 +51,7 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
     // html += "<div> " + JSON.stringify(sitecontent) + "</div>";
 
 
-    var htmlBlock = renderHtml(response.data.nodes[nodeId].document, projectId, nodeId);
+    var htmlBlock = renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null);
 
 
     // Только для отображения на этапе разработки, потом нужно убрать 
@@ -65,18 +69,60 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
 });
 
 
-var renderHtml = function (object, project_id, node_id) {
+var renderHtml = function (object, project_id, node_id, closest_parent_x) {
 
-  var attributes = setHtmlAttributes(object, project_id, node_id);
+  var closestParentX = closest_parent_x;
+
+  console.log("heeellloooo closestParentX", closestParentX);
+
+  if (object.type.toLowerCase() == "vector222") {
+    console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
+    console.log("hello object.locked", object.locked);
+    console.log("hello object.exportSettings", object.exportSettings);
+    console.log("hello object.blendMode", object.blendMode);
+    console.log("hello object.preserveRatio", object.preserveRatio);
+    console.log("hello object.layoutAlign", object.layoutAlign);
+    console.log("hello object.layoutGrow", object.layoutGrow);
+    console.log("hello object.constraints", object.constraints);
+    console.log("hello object.transitionNodeID", object.transitionNodeID);
+    console.log("hello object.transitionDuration", object.transitionDuration);
+    console.log("hello object.transitionEasing", object.transitionEasing);
+    console.log("hello object.opacity", object.opacity);
+    console.log("hello object.absoluteBoundingBox", object.absoluteBoundingBox);
+    console.log("hello object.effects", object.effects);
+    console.log("hello object.size", object.size);
+    console.log("hello object.relativeTransform", object.relativeTransform);
+    console.log("hello object.isMask", object.isMask);
+    console.log("hello object.fills", object.fills);
+    console.log("hello object.fillGeometry", object.fillGeometry);
+    console.log("hello object.strokes", object.strokes);
+    console.log("hello object.strokeWeight", object.strokeWeight);
+    console.log("hello object.strokeCap", object.strokeCap);
+    console.log("hello object.strokeJoin", object.strokeJoin);
+    console.log("hello object.strokeDashes", object.strokeDashes);
+    console.log("hello object.strokeMiterAngle", object.strokeMiterAngle);
+    console.log("hello object.strokeGeometry", object.strokeGeometry);
+    console.log("hello object.strokeAlign", object.strokeAlign);
+    console.log("hello object.styles", object.styles);
+    console.log("~~~~~~~~~");
+  }
+
+  var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX);
   var html = "<div " + attributes + ">";
 
   if (object["children"]) {
 
     if (object["children"].length > 0) {
 
+      if (object.absoluteBoundingBox) {
+        if (object.absoluteBoundingBox.x) {
+          closestParentX = object.absoluteBoundingBox.x;
+        }
+      }
+
       for (var i = 0; i < object["children"].length; i++) {
 
-        html += renderHtml(object["children"][i], project_id, node_id);
+        html += renderHtml(object["children"][i], project_id, node_id, closestParentX);
 
       }
 
@@ -111,12 +157,12 @@ var generateElementid = function (len, charSet) {
 
 }
 
-var setHtmlAttributes = function (object, project_id, node_id) {
+var setHtmlAttributes = function (object, project_id, node_id, closestParentX) {
+
+  console.log("closestParentXclosestParentXclosestParentXclosestParentX closestParentX", closestParentX)
 
   var attributes = "";
   var elem = {};
-  var parentX = 0;
-  var parentY = 0;
 
   elem["style"] = {};
   if (object.type) {
@@ -128,7 +174,7 @@ var setHtmlAttributes = function (object, project_id, node_id) {
     elem["elementid"] = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
 
     if (object.id == node_id) {
-      elem["style"]["position"] = "relative";
+      elem["style"]["position"] = "relative";    
     } else {
       elem["style"]["position"] = "absolute";
     }
@@ -145,20 +191,43 @@ var setHtmlAttributes = function (object, project_id, node_id) {
   }
   if (object.absoluteBoundingBox) {
     
-    // if (object.id == node_id) {
+    if (object.id == node_id) {
 
-    //   parentX = object.absoluteBoundingBox.x;
-    //   parentY = object.absoluteBoundingBox.y;
+      parentX = object.absoluteBoundingBox.x;
+      parentY = object.absoluteBoundingBox.y;
 
-    // } else {
+      console.log("parentX", parentX);
+      console.log("closestParentX", closestParentX);
+      console.log("parentY", parentY);
 
-    //   if (parentX) {
+    } else {
 
-    //     elem["style"]["left"] = (object.absoluteBoundingBox.x - parentX) + "px";
+      if (parentX != null){
 
-    //   }
+        if (object.absoluteBoundingBox.x != closestParentX) {
 
-    // }
+          if (closestParentX != null) {
+
+            elem["style"]["left"] = (object.absoluteBoundingBox.x - closestParentX) + "px";
+
+          } else {
+
+            elem["style"]["left"] = (object.absoluteBoundingBox.x - parentX) + "px";
+
+          }
+
+          console.log("@@@@@ parentX", closestParentX, object.absoluteBoundingBox.x, parentX) ;
+
+        } else {
+
+          elem["style"]["left"] = "0px";
+
+        }
+
+      }
+
+    }
+
     if (object.absoluteBoundingBox.width) {
       elem["style"]["width"] = object.absoluteBoundingBox.width.toString() + "px";
     }
