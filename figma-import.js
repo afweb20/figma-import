@@ -11,6 +11,7 @@ var express = require("express");
 var app = express();
 var router = express.Router();
 var axios = require("axios");
+const { json } = require("express");
 var parentX = null;
 var parentY = null;
 
@@ -73,8 +74,9 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
 
   var closestParentX = closest_parent_x;
   var closestParentY = closest_parent_y;
+  var type = object.type.toLowerCase(); //type есть  всегда
 
-  if (object.type.toLowerCase() == "vector222") {
+  if (type == "vector222") {
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
     console.log("hello object.exportSettings", object.exportSettings);
@@ -106,7 +108,51 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
     console.log("~~~~~~~~~");
   }
 
+
+  if (type == "text") {
+    // тут всё от vector
+    console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
+    console.log("hello object.locked", object.locked);
+    console.log("hello object.exportSettings", object.exportSettings);
+    console.log("hello object.blendMode", object.blendMode);
+    console.log("hello object.preserveRatio", object.preserveRatio);
+    console.log("hello object.layoutAlign", object.layoutAlign);
+    console.log("hello object.layoutGrow", object.layoutGrow);
+    console.log("hello object.constraints", object.constraints);
+    console.log("hello object.transitionNodeID", object.transitionNodeID);
+    console.log("hello object.transitionDuration", object.transitionDuration);
+    console.log("hello object.transitionEasing", object.transitionEasing);
+    console.log("hello object.opacity", object.opacity);
+    console.log("hello object.absoluteBoundingBox", object.absoluteBoundingBox);
+    console.log("hello object.effects", object.effects);
+    console.log("hello object.size", object.size);
+    console.log("hello object.relativeTransform", object.relativeTransform);
+    console.log("hello object.isMask", object.isMask);
+    console.log("hello object.fills", object.fills);
+    console.log("hello object.fillGeometry", object.fillGeometry);
+    console.log("hello object.strokes", object.strokes);
+    console.log("hello object.strokeWeight", object.strokeWeight);
+    console.log("hello object.strokeCap", object.strokeCap);
+    console.log("hello object.strokeJoin", object.strokeJoin);
+    console.log("hello object.strokeDashes", object.strokeDashes);
+    console.log("hello object.strokeMiterAngle", object.strokeMiterAngle);
+    console.log("hello object.strokeGeometry", object.strokeGeometry);
+    console.log("hello object.strokeAlign", object.strokeAlign);
+    console.log("hello object.styles", object.styles);
+
+    // + дополнительно 
+    console.log("hello object.characters", object.characters);
+    console.log("hello object.characterStyleOverrides", object.characterStyleOverrides);
+    console.log("hello object.styleOverrideTable", object.styleOverrideTable);
+    console.log("hello object.lineTypes", object.lineTypes);
+    console.log("hello object.lineIndentations", object.lineIndentations);
+
+
+    console.log("~~~~~~~~~");
+  }
+
   var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX, closestParentY);
+
   var html = "<div " + attributes + ">";
 
   if (object["children"]) {
@@ -137,6 +183,58 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
 
     console.log("NO child");
 
+    if (type == "text") {
+
+      if (object.characters) {
+
+        var string = object.characters;
+        var array_of_arrs = [];
+        var prev = null;
+
+        if (object.characterStyleOverrides) {
+          if (object.characterStyleOverrides.length > 0) {
+
+            for (var i = 0; i < object.characterStyleOverrides.length; i++) {
+
+              if (!prev) {
+
+                var arr = [];
+                arr.push(object.characterStyleOverrides[i]);
+                array_of_arrs.push(arr);
+                
+              } else {
+
+                if ( prev != object.characterStyleOverrides[i] ) {
+
+                  var arr = [];
+                  arr.push(object.characterStyleOverrides[i]);
+                  array_of_arrs.push(arr);
+
+                } else {
+
+                  arr.push(object.characterStyleOverrides[i]);
+
+                }
+
+              }
+
+              prev = object.characterStyleOverrides[i];
+
+            }
+
+          }
+        }
+
+        console.log("@@@@@@ array_of_arrs ", array_of_arrs);
+
+        // string = string.replace(/(?:\r\n|\r|\n)/g, '<br/>');
+
+        html += string;
+
+      }
+
+    }
+
   }
 
   html += "</div>";
@@ -166,11 +264,12 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   var attributes = "";
   var elem = {};
+  var type = object.type.toLowerCase(); // type - присутствует всегда
 
   elem["style"] = {};
-  if (object.type) {
-    elem["class"] = "b-" + object.type.toLowerCase();
-  }
+  elem["class"] = "b-" + type;
+
+  // добавляем position 
   if (object.id) {
 
     elem["node-id"] = object.id;
@@ -184,26 +283,27 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
     }
     
   }
-  if (object.fills) {
-    if (object.fills.length > 0) {
-      if (object.fills[0]) {
-        if (object.fills[0]["color"]) {
-          elem["style"]["background-color"] = generateRgbaString(object.fills[0]["color"]);
+
+  // доабвляем фон
+  if (type != "text") {
+    if (object.fills) {
+      if (object.fills.length > 0) {
+        if (object.fills[0]) {
+          if (object.fills[0]["color"]) {
+            elem["style"]["background-color"] = generateRgbaString(object.fills[0]["color"]);
+          }
         }
       }
     }
   }
+
+  // размеры и позиционирование элемента (left && top)
   if (object.absoluteBoundingBox) {
     
     if (object.id == node_id) {
 
       parentX = object.absoluteBoundingBox.x;
       parentY = object.absoluteBoundingBox.y;
-
-      // console.log("parentX", parentX);
-      // console.log("closestParentX", closestParentX);
-      // console.log("parentY", parentY);
-      // console.log("closestParentY", closestParentY);
 
     } else {
 
@@ -219,6 +319,11 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
     if (object.absoluteBoundingBox.height) {
       elem["style"]["height"] = object.absoluteBoundingBox.height.toString() + "px";
     }
+
+  }
+
+  // для текста 
+  if (type == "text") {
 
   }
 
