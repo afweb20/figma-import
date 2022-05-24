@@ -1,11 +1,9 @@
 const PERSONAL_ACCESS_TOKEN = "367581-50354355-43eb-4834-a520-da304dbe7ae3";
 const PORT = 8000;
 
-
-// 1 --- http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/636:3/2
-// 2 --- http://localhost:8000/P9rADa5f4Rve6NoTjPUG5B/183%3A3/2
-// 3 --- http://localhost:8000/dms5Vr9yGfK445F3mncTz9/1%3A2/2
-
+// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/636:3/2 - зеленый фон с лого фо ру
+// http://localhost:8000/dms5Vr9yGfK445F3mncTz9/1%3A2/2 - webmoney video landing
+// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/757%3A26/2 - webmoney files landing
 
 var express = require("express");
 var app = express();
@@ -14,11 +12,15 @@ var axios = require("axios");
 const { json } = require("express");
 var parentX = null;
 var parentY = null;
+var fs = require('fs');
+
 
 app.get("/:project_id/:node_id/:view", function (req, res) {
 
   var projectId = req.params.project_id;
   var nodeId = req.params.node_id;
+
+  // res.sendFile('views/index.html', {root: __dirname })
 
   axios({
     method: "get",
@@ -54,18 +56,30 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
 
     var htmlBlock = renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null);
 
+    fs.readFile('views/index.html', 'utf8', function (err,data) {
+      if (err) {
+        return console.log(err);
+      }
 
-    // Только для отображения на этапе разработки, потом нужно убрать 
-    if (req.params.view == 0) {
-      res.send(response.data.nodes[req.params.node_id].document);
-    } else if (req.params.view == 1) {
-      // res.send(html);
-    } else if (req.params.view == 2) {
-      res.send(htmlBlock); // визуально html
-    }
+      // Только для отображения на этапе разработки, потом нужно убрать 
+      if (req.params.view == 0) {
+        content = response.data.nodes[req.params.node_id].document;
+      } else if (req.params.view == 1) {
+        // content = html;
+      } else if (req.params.view == 2) {
+        content = htmlBlock; // визуально html
+      }
+
+      data = data.replace(/\<\/body>/g, content + '</body>');
+      // console.log(data);
+      res.send(data);
+
+    });
 
     
   });
+
+
 
 });
 
@@ -76,7 +90,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
   var closestParentY = closest_parent_y;
   var type = object.type.toLowerCase(); //type есть  всегда
 
-  if (type == "vector222") {
+  if (type == "vector555") {
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
     console.log("hello object.exportSettings", object.exportSettings);
@@ -109,7 +123,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
   }
 
 
-  if (type == "text") {
+  if (type == "text222") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
