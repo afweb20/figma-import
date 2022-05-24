@@ -202,7 +202,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
     console.log("~~~~~~~~~");
   }
 
-  if (type == "rectangle") {
+  if (type == "rectangle=") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -270,7 +270,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
 
   } else {
 
-    console.log("NO child");
+    // console.log("NO child");
 
     if (type == "text") {
 
@@ -432,15 +432,84 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   // добавляем фон
   if (type != "text") {
-    if (object.fills) {
-      if (object.fills.length > 0) {
-        if (object.fills[0]) {
-          if (object.fills[0]["color"]) {
-            elem["style"]["background-color"] = generateRgbaString(object.fills[0]["color"]);
+
+    var fills = object.fills;
+
+    if (fills) {
+      if (fills.length > 0) {
+
+        for (var i=0; i < fills.length; i++) {
+
+          var fill = fills[i];
+          var fillType = fill.type;
+
+          if (fillType == "SOLID") {
+
+            if (fill.color) {
+
+              elem["style"]["background-color"] = generateRgbaString(fill.color);
+
+            }
+
           }
+
+          if (fillType == "GRADIENT_LINEAR") {
+
+            console.log("hello GRADIENT_LINEAR", fill.gradientHandlePositions);
+            console.log("hello GRADIENT_LINEAR2", fill.gradientStops);
+
+            if (fill.gradientStops) {
+
+              var x1 = fill.gradientHandlePositions[0]["x"];
+              var y1 = fill.gradientHandlePositions[0]["y"];
+
+              var x2 = fill.gradientHandlePositions[1]["x"];
+              var y2 = fill.gradientHandlePositions[1]["y"];
+
+              var deltaX = x2 - x1;
+              var deltaY = y2 - y1;
+              var rad = Math.atan2(deltaY, deltaX); // In radians
+
+              var deg = rad * (180 / Math.PI)
+              
+
+              var gradient = "linear-gradient(";
+              gradient += deg + "deg, ";
+
+              for (var i=0; i < fill.gradientStops.length; i++) {
+
+                gradient += generateRgbaString(fill.gradientStops[i].color);
+
+                if (i != fill.gradientStops.length - 1) {
+                  gradient += ", ";
+                }
+
+              }
+
+              gradient += ")";
+
+              elem["style"]["background-image"] = gradient;
+
+            }
+
+            // elem["style"]["background-image"] = "linear-gradient()";
+
+            // {
+            //   blendMode: 'NORMAL',
+            //   type: 'GRADIENT_LINEAR',
+            //   gradientHandlePositions: [ [Object], [Object], [Object] ],
+            //   gradientStops: [ [Object], [Object] ]
+            // }
+          
+          }
+
+
         }
+        
       }
+
     }
+
   }
 
   // размеры и позиционирование элемента (left && top)
