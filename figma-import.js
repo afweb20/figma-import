@@ -90,7 +90,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
   var closestParentY = closest_parent_y;
   var type = object.type.toLowerCase(); //type есть  всегда
 
-  if (type == "vector555") {
+  if (type == "vector=") {
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
     console.log("hello object.exportSettings", object.exportSettings);
@@ -123,7 +123,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
   }
 
 
-  if (type == "text222") {
+  if (type == "text=") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -165,7 +165,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
     console.log("~~~~~~~~~");
   }
 
-  if (type == "ellipse") {
+  if (type == "ellipse=") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -198,6 +198,44 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
 
     // + дополнительно 
     console.log("hello object.arcData", object.arcData);
+
+    console.log("~~~~~~~~~");
+  }
+
+  if (type == "rectangle") {
+    // тут всё от vector
+    console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
+    console.log("hello object.locked", object.locked);
+    console.log("hello object.exportSettings", object.exportSettings);
+    console.log("hello object.blendMode", object.blendMode);
+    console.log("hello object.preserveRatio", object.preserveRatio);
+    console.log("hello object.layoutAlign", object.layoutAlign);
+    console.log("hello object.layoutGrow", object.layoutGrow);
+    console.log("hello object.constraints", object.constraints);
+    console.log("hello object.transitionNodeID", object.transitionNodeID);
+    console.log("hello object.transitionDuration", object.transitionDuration);
+    console.log("hello object.transitionEasing", object.transitionEasing);
+    console.log("hello object.opacity", object.opacity);
+    console.log("hello object.absoluteBoundingBox", object.absoluteBoundingBox);
+    console.log("hello object.effects", object.effects);
+    console.log("hello object.size", object.size);
+    console.log("hello object.relativeTransform", object.relativeTransform);
+    console.log("hello object.isMask", object.isMask);
+    console.log("hello object.fills", object.fills);
+    console.log("hello object.fillGeometry", object.fillGeometry);
+    console.log("hello object.strokes", object.strokes);
+    console.log("hello object.strokeWeight", object.strokeWeight);
+    console.log("hello object.strokeCap", object.strokeCap);
+    console.log("hello object.strokeJoin", object.strokeJoin);
+    console.log("hello object.strokeDashes", object.strokeDashes);
+    console.log("hello object.strokeMiterAngle", object.strokeMiterAngle);
+    console.log("hello object.strokeGeometry", object.strokeGeometry);
+    console.log("hello object.strokeAlign", object.strokeAlign);
+    console.log("hello object.styles", object.styles);
+
+    // + дополнительно 
+    console.log("hello object.cornerRadius", object.cornerRadius);
+    console.log("hello object.rectangleCornerRadii", object.rectangleCornerRadii);
 
     console.log("~~~~~~~~~");
   }
@@ -440,6 +478,19 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
   // для эллипса 
   if (type == "ellipse") {
     elem["style"]["border-radius"] = "100%";
+  }
+
+  // для прямоугольника 
+  if (type == "rectangle") {
+    if (object.cornerRadius) {
+      elem["style"]["border-radius"] = object.cornerRadius + "px";
+    }
+    if (object.rectangleCornerRadii) {
+      elem["style"]["border-top-left-radius"] = object.rectangleCornerRadii[0] + "px";
+      elem["style"]["border-top-right-radius"] = object.rectangleCornerRadii[1] + "px";
+      elem["style"]["border-bottom-right-radius"] = object.rectangleCornerRadii[2] + "px";
+      elem["style"]["border-bottom-left-radius"] = object.rectangleCornerRadii[3] + "px";
+    }
   }
 
   return generateStyleAttribute(elem);
