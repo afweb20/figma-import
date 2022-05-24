@@ -61,7 +61,7 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
     } else if (req.params.view == 1) {
       // res.send(html);
     } else if (req.params.view == 2) {
-      res.send(htmlBlock);
+      res.send(htmlBlock); // визуально html
     }
 
     
@@ -232,10 +232,11 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
         for (var i = 0; i < array_of_arrs.length; i++) {
 
           var ar = array_of_arrs[i];
+          var key = ar[0];
           var lastIndex = ar.length + prevIndex;
           var text = string.substring(prevIndex, lastIndex);
           var match = /\r|\n/.exec(text);
-          var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX, closestParentY);
+          var attributes = setTextAttributes(object, key);
 
           if (match) {
 
@@ -292,7 +293,6 @@ var generateElementid = function (len, charSet) {
 
 var setHtmlAttributes = function (object, project_id, node_id, closestParentX, closestParentY) {
 
-  var attributes = "";
   var elem = {};
   var type = object.type.toLowerCase(); // type - присутствует всегда
 
@@ -356,6 +356,61 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
   if (type == "text") {
 
   }
+
+  return generateStyleAttribute(elem);
+
+}
+
+var setTextAttributes = function(object, key) {
+
+  var availableStyles = ["font-family", "font-weight", "font-size", "letter-spacing", "line-height-px"];
+  var elem = {};
+  elem["style"] = {};
+
+  if (object.style) {
+
+    var keys = Object.keys(object.style);
+
+    for (var i = 0; i < keys.length; i++) {
+
+      var k = keys[i];
+      var kebabKey = kebab(k);
+
+      if (availableStyles.indexOf(kebabKey) > -1) {
+
+        if (kebabKey == "line-height-px") {
+
+          kebabKey = "line-height";
+
+        }
+
+        if (kebabKey == "line-height" || kebabKey == "font-size" || kebabKey == "letter-spacing") {
+
+          elem["style"][kebabKey] = object.style[k] + "px";
+
+        } else if (kebabKey == "font-family") {
+
+          elem["style"][kebabKey] = "\"" + object.style[k] + "\", sans-serif";
+
+        } else {
+
+          elem["style"][kebabKey] = object.style[k];
+
+        }
+
+      }
+
+    }
+
+  }
+
+  return generateStyleAttribute(elem);
+
+};
+
+var generateStyleAttribute = function (elem) {
+
+  var attributes = "";
 
   var keys = Object.keys(elem);
 
@@ -564,6 +619,12 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
     }
 
   }
+
+}
+
+var kebab = function (s) {
+
+  return s.replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "-" + y.toLowerCase()}).replace(/^-/, "");
 
 }
 
