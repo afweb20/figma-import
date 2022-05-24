@@ -425,7 +425,7 @@ var setTextAttributes = function(object, key) {
     for (var i = 0; i < keys.length; i++) {
 
       var k = keys[i];
-      var kebabKey = kebab(k);
+      var kebabKey = toKebabCase(k);
 
       if (availableStyles.indexOf(kebabKey) > -1) {
 
@@ -712,7 +712,7 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
 
 }
 
-var kebab = function (s) {
+var toKebabCase = function (s) {
 
   return s.replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "-" + y.toLowerCase()}).replace(/^-/, "");
 
