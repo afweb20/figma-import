@@ -225,16 +225,47 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
           }
         }
 
-        console.log("@@@@@@ array_of_arrs ", array_of_arrs);
+        // console.log("@@@@@@ array_of_arrs ", array_of_arrs, string);
 
-        // string = string.replace(/(?:\r\n|\r|\n)/g, '<br/>');
-        var prevIndex = 0;
-        for (var i = 0; i < array_of_arrs.length; i++) {
+        if (array_of_arrs.length > 0) {
 
-          var ar = array_of_arrs[i];
-          var key = ar[0];
-          var lastIndex = ar.length + prevIndex;
-          var text = string.substring(prevIndex, lastIndex);
+          var prevIndex = 0;
+          for (var i = 0; i < array_of_arrs.length; i++) {
+
+            var ar = array_of_arrs[i];
+            var key = ar[0];
+            var lastIndex = ar.length + prevIndex;
+            var text = string.substring(prevIndex, lastIndex);
+            var match = /\r|\n/.exec(text);
+            var attributes = setTextAttributes(object, key);
+
+            if (match) {
+
+              text = text.replace(/(?:\r\n|\r|\n)/g, '');
+
+              var htmStr = "<div " + attributes + ">";
+              htmStr += text;
+              htmStr += "</div>";
+
+            } else {
+
+              var htmStr = "<span " + attributes + ">";
+              htmStr += text;
+              htmStr += "</span>";
+
+            }
+
+            // console.log("@@@@@", prevIndex, ar.length, string, htmStr);
+
+            prevIndex = ar.length;
+            
+            html += htmStr;
+
+          }
+
+        } else {
+
+          var text = string;
           var match = /\r|\n/.exec(text);
           var attributes = setTextAttributes(object, key);
 
@@ -253,10 +284,6 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
             htmStr += "</span>";
 
           }
-
-          console.log("@@@@@", prevIndex, ar.length, string, htmStr);
-
-          prevIndex = ar.length;
           
           html += htmStr;
 
