@@ -201,7 +201,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
                 var arr = [];
                 arr.push(object.characterStyleOverrides[i]);
                 array_of_arrs.push(arr);
-                
+
               } else {
 
                 if ( prev != object.characterStyleOverrides[i] ) {
@@ -228,8 +228,38 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
         console.log("@@@@@@ array_of_arrs ", array_of_arrs);
 
         // string = string.replace(/(?:\r\n|\r|\n)/g, '<br/>');
+        var prevIndex = 0;
+        for (var i = 0; i < array_of_arrs.length; i++) {
 
-        html += string;
+          var ar = array_of_arrs[i];
+          var lastIndex = ar.length + prevIndex;
+          var text = string.substring(prevIndex, lastIndex);
+          var match = /\r|\n/.exec(text);
+          var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX, closestParentY);
+
+          if (match) {
+
+            text = text.replace(/(?:\r\n|\r|\n)/g, '');
+
+            var htmStr = "<div " + attributes + ">";
+            htmStr += text;
+            htmStr += "</div>";
+
+          } else {
+
+            var htmStr = "<span " + attributes + ">";
+            htmStr += text;
+            htmStr += "</span>";
+
+          }
+
+          console.log("@@@@@", prevIndex, ar.length, string, htmStr);
+
+          prevIndex = ar.length;
+          
+          html += htmStr;
+
+        }
 
       }
 
