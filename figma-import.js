@@ -422,6 +422,23 @@ var setTextAttributes = function(object, key) {
 
       }
 
+      if (k == "fills") {
+
+        if (styles[k].length == 1) {
+
+          var color = styles[k][0];
+
+          if (color.type.toLowerCase() == "solid") {
+
+            elem["style"]["color"] = generateRgbaString(color.color);
+
+          }
+
+
+        }
+
+      }
+
     }
 
   }
