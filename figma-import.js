@@ -165,6 +165,43 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
     console.log("~~~~~~~~~");
   }
 
+  if (type == "ellipse") {
+    // тут всё от vector
+    console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
+    console.log("hello object.locked", object.locked);
+    console.log("hello object.exportSettings", object.exportSettings);
+    console.log("hello object.blendMode", object.blendMode);
+    console.log("hello object.preserveRatio", object.preserveRatio);
+    console.log("hello object.layoutAlign", object.layoutAlign);
+    console.log("hello object.layoutGrow", object.layoutGrow);
+    console.log("hello object.constraints", object.constraints);
+    console.log("hello object.transitionNodeID", object.transitionNodeID);
+    console.log("hello object.transitionDuration", object.transitionDuration);
+    console.log("hello object.transitionEasing", object.transitionEasing);
+    console.log("hello object.opacity", object.opacity);
+    console.log("hello object.absoluteBoundingBox", object.absoluteBoundingBox);
+    console.log("hello object.effects", object.effects);
+    console.log("hello object.size", object.size);
+    console.log("hello object.relativeTransform", object.relativeTransform);
+    console.log("hello object.isMask", object.isMask);
+    console.log("hello object.fills", object.fills);
+    console.log("hello object.fillGeometry", object.fillGeometry);
+    console.log("hello object.strokes", object.strokes);
+    console.log("hello object.strokeWeight", object.strokeWeight);
+    console.log("hello object.strokeCap", object.strokeCap);
+    console.log("hello object.strokeJoin", object.strokeJoin);
+    console.log("hello object.strokeDashes", object.strokeDashes);
+    console.log("hello object.strokeMiterAngle", object.strokeMiterAngle);
+    console.log("hello object.strokeGeometry", object.strokeGeometry);
+    console.log("hello object.strokeAlign", object.strokeAlign);
+    console.log("hello object.styles", object.styles);
+
+    // + дополнительно 
+    console.log("hello object.arcData", object.arcData);
+
+    console.log("~~~~~~~~~");
+  }
+
   var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX, closestParentY);
 
   var html = "<div " + attributes + ">";
@@ -355,7 +392,7 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
     
   }
 
-  // доабвляем фон
+  // добавляем фон
   if (type != "text") {
     if (object.fills) {
       if (object.fills.length > 0) {
@@ -398,6 +435,11 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
   // для текста 
   if (type == "text") {
 
+  }
+
+  // для эллипса 
+  if (type == "ellipse") {
+    elem["style"]["border-radius"] = "100%";
   }
 
   return generateStyleAttribute(elem);
