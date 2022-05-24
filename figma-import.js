@@ -369,7 +369,29 @@ var setTextAttributes = function(object, key) {
 
   if (object.style) {
 
-    var keys = Object.keys(object.style);
+    styles(object.style);
+
+  }
+
+  console.log("helllo key", object.styleOverrideTable[key]);
+
+  if (key) {
+
+    if (object.styleOverrideTable) {
+
+      if (object.styleOverrideTable[key]) {
+
+        styles(object.styleOverrideTable[key]);
+
+      }
+
+    }
+
+  }
+
+  function styles (styles) {
+
+    var keys = Object.keys(styles);
 
     for (var i = 0; i < keys.length; i++) {
 
@@ -386,15 +408,15 @@ var setTextAttributes = function(object, key) {
 
         if (kebabKey == "line-height" || kebabKey == "font-size" || kebabKey == "letter-spacing") {
 
-          elem["style"][kebabKey] = object.style[k] + "px";
+          elem["style"][kebabKey] = styles[k] + "px";
 
         } else if (kebabKey == "font-family") {
 
-          elem["style"][kebabKey] = "\"" + object.style[k] + "\", sans-serif";
+          elem["style"][kebabKey] = "\"" + styles[k] + "\", sans-serif";
 
         } else {
 
-          elem["style"][kebabKey] = object.style[k];
+          elem["style"][kebabKey] = styles[k];
 
         }
 
