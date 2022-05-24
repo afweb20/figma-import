@@ -364,7 +364,9 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
     } else {
 
-      elem["style"]["left"] = getElementLeftPosition(object, parentX, closestParentX);
+      // высчитывать позицию, если родитель не x=0 & y=0, т е если iframe смещен
+
+      elem["style"]["left"] = getElementLeftPosition(object, parentX, closestParentX); 
       elem["style"]["top"] = getElementTopPosition(object, parentY, closestParentY);
 
     }
@@ -400,7 +402,7 @@ var setTextAttributes = function(object, key) {
 
   }
 
-  console.log("helllo key", object.styleOverrideTable[key]);
+  // console.log("helllo key", object.styleOverrideTable[key]);
 
   if (key) {
 
@@ -640,11 +642,11 @@ var getElementLeftPosition = function (object, parentX, closestParentX) {
 
       if (closestParentX != null) {
 
-        return (object.absoluteBoundingBox.x - closestParentX) + "px";
+        return (object.absoluteBoundingBox.x - closestParentX).toFixed(0) + "px";
 
       } else {
 
-        return (object.absoluteBoundingBox.x - parentX) + "px";
+        return (object.absoluteBoundingBox.x - parentX).toFixed(0) + "px";
 
       }
 
@@ -660,23 +662,45 @@ var getElementLeftPosition = function (object, parentX, closestParentX) {
 
 var getElementTopPosition = function (object, parentY, closestParentY) {
 
-  if (parentX != null){
+  if (parentY != null){
 
     if (object.absoluteBoundingBox.y != closestParentY) {
 
-      var top1 = Math.abs(object.absoluteBoundingBox.y);
+      // если позиция iframe по y < 0
+      if ( parentY < 0 ) {
 
-      if (closestParentY != null) {
+        var top = object.absoluteBoundingBox.y + Math.abs(parentY);
 
-        var top2 = Math.abs(closestParentY);
+        if (closestParentY != null) {
+
+          var topClosestParent = closestParentY + Math.abs(parentY);
+
+          return (top - topClosestParent) + "px";
+
+        } else {
+
+          return top + "px";
+
+        }
 
       } else {
+        // если позиция iframe по y > 0
 
-        var top2 = Math.abs(parentY);
+        var top = object.absoluteBoundingBox.y - Math.abs(parentY);
+
+        if (closestParentY != null) {
+
+          var topClosestParent = closestParentY - Math.abs(parentY);
+
+          return (top - topClosestParent) + "px";
+
+        } else {
+
+          return top + "px";
+
+        }
 
       }
-
-      return (top2 - top1) + "px";
 
     } else {
 
