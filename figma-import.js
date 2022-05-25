@@ -122,7 +122,6 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
     console.log("~~~~~~~~~");
   }
 
-
   if (type == "text=") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
@@ -333,13 +332,13 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
               text = text.replace(/(?:\r\n|\r|\n)/g, '');
 
               var htmStr = "<div " + attributes + ">";
-              htmStr += text;
+              htmStr += escapeHtml(text);
               htmStr += "</div>";
 
             } else {
 
               var htmStr = "<span " + attributes + ">";
-              htmStr += text;
+              htmStr += escapeHtml(text);
               htmStr += "</span>";
 
             }
@@ -363,13 +362,13 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
             text = text.replace(/(?:\r\n|\r|\n)/g, '');
 
             var htmStr = "<div " + attributes + ">";
-            htmStr += text;
+            htmStr += escapeHtml(text);
             htmStr += "</div>";
 
           } else {
 
             var htmStr = "<span " + attributes + ">";
-            htmStr += text;
+            htmStr += escapeHtml(text);
             htmStr += "</span>";
 
           }
@@ -892,6 +891,15 @@ var toKebabCase = function (s) {
 
   return s.replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "-" + y.toLowerCase()}).replace(/^-/, "");
 
+}
+
+var escapeHtml = function (unsafe) {
+  return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
 
 app.listen(PORT, function () {
