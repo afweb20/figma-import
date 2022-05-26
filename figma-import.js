@@ -13,7 +13,7 @@ const { json } = require("express");
 var parentX = null;
 var parentY = null;
 var fs = require('fs');
-
+var images = null;
 
 app.get("/:project_id/:node_id/:view", function (req, res) {
 
@@ -21,6 +21,21 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
   var nodeId = req.params.node_id;
 
   // res.sendFile('views/index.html', {root: __dirname })
+  axios({
+    method: "get",
+    url: "https://api.figma.com/v1/files/" + projectId + "/images",
+    headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
+  }).then(function (response) {
+    if (response) {
+      if (response.data) {
+        if (response.data.meta) {
+          if (response.data.meta.images) {
+            images = response.data.meta.images;
+          }
+        }
+      }
+    }
+  });
 
   axios({
     method: "get",
@@ -53,8 +68,7 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
     // html += "</div>";
     // html += "<div> " + JSON.stringify(sitecontent) + "</div>";
 
-
-    var htmlBlock = renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null);
+    var htmlBlock = renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, images);
 
     fs.readFile('views/index.html', 'utf8', function (err,data) {
       if (err) {
@@ -84,13 +98,13 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
 });
 
 
-var renderHtml = function (object, project_id, node_id, closest_parent_x, closest_parent_y) {
+var renderHtml = function (object, project_id, node_id, closest_parent_x, closest_parent_y, images) {
 
   var closestParentX = closest_parent_x;
   var closestParentY = closest_parent_y;
-  var type = object.type.toLowerCase(); //type есть  всегда
+  var type = object.type; //type есть  всегда
 
-  if (type == "vector=") {
+  if (type == "VECTOR=") {
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
     console.log("hello object.exportSettings", object.exportSettings);
@@ -122,7 +136,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
     console.log("~~~~~~~~~");
   }
 
-  if (type == "text=") {
+  if (type == "TEXT=") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -164,7 +178,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
     console.log("~~~~~~~~~");
   }
 
-  if (type == "ellipse=") {
+  if (type == "ELLIPSE=") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -201,7 +215,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
     console.log("~~~~~~~~~");
   }
 
-  if (type == "rectangle=") {
+  if (type == "RECTANGLE=") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -271,7 +285,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
 
     // console.log("NO child");
 
-    if (type == "text") {
+    if (type == "TEXT") {
 
       if (object.characters) {
 
@@ -409,10 +423,10 @@ var generateElementid = function (len, charSet) {
 var setHtmlAttributes = function (object, project_id, node_id, closestParentX, closestParentY) {
 
   var elem = {};
-  var type = object.type.toLowerCase(); // type - присутствует всегда
+  var type = object.type; // type - присутствует всегда
 
   elem["style"] = {};
-  elem["class"] = "b-" + type;
+  elem["class"] = "b-" + type.toLowerCase();
 
   // добавляем position 
   if (object.id) {
@@ -429,8 +443,35 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
     
   }
 
+  // размеры и позиционирование элемента (left && top)
+  if (object.absoluteBoundingBox) {
+    
+    if (object.id == node_id) {
+
+      parentX = object.absoluteBoundingBox.x;
+      parentY = object.absoluteBoundingBox.y;
+
+    } else {
+
+      // высчитывать позицию, если родитель не x=0 & y=0, т е если iframe смещен
+
+      elem["style"]["left"] = getElementLeftPosition(object, parentX, closestParentX); 
+      elem["style"]["top"] = getElementTopPosition(object, parentY, closestParentY);
+
+    }
+
+    if (object.absoluteBoundingBox.width) {
+      elem["style"]["width"] = object.absoluteBoundingBox.width.toString() + "px";
+    }
+
+    if (object.absoluteBoundingBox.height) {
+      elem["style"]["height"] = object.absoluteBoundingBox.height.toString() + "px";
+    }
+
+  }
+
   // добавляем фон
-  if (type != "text") {
+  if (type != "TEXT") {
 
     var fills = object.fills;
 
@@ -447,15 +488,41 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
             if (fill.color) {
 
               elem["style"]["background-color"] = generateRgbaString(fill.color);
+              // elem["style"]["background-size"] = elem["style"]["width"] + " " + elem["style"]["height"];
 
             }
 
           }
 
+          if (fillType == "IMAGE") {
+
+            if (fill.imageRef) {
+             
+              if (images) {
+
+                if (images[fill.imageRef]) {
+                  // console.log("hello fill", fill.imageRef, images[fill.imageRef]);
+                  console.log("hello fill", fill);
+
+                  elem["style"]["background-image"] = "url(" + images[fill.imageRef] + ")";
+
+                  if (fill.scaleMode == "FILL") {
+                    elem["style"]["background-size"] = "cover";
+                    elem["style"]["background-position"] = "center center";
+                  }
+
+                }
+
+              }
+            }
+
+
+          }
+
           if (fillType == "GRADIENT_LINEAR") {
 
-            console.log("hello GRADIENT_LINEAR", fill.gradientHandlePositions);
-            console.log("hello GRADIENT_LINEAR2", fill.gradientStops);
+            // console.log("hello GRADIENT_LINEAR", fill.gradientHandlePositions);
+            // console.log("hello GRADIENT_LINEAR2", fill.gradientStops);
 
             if (fill.gradientStops) {
 
@@ -511,45 +578,18 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   }
 
-  // размеры и позиционирование элемента (left && top)
-  if (object.absoluteBoundingBox) {
-    
-    if (object.id == node_id) {
-
-      parentX = object.absoluteBoundingBox.x;
-      parentY = object.absoluteBoundingBox.y;
-
-    } else {
-
-      // высчитывать позицию, если родитель не x=0 & y=0, т е если iframe смещен
-
-      elem["style"]["left"] = getElementLeftPosition(object, parentX, closestParentX); 
-      elem["style"]["top"] = getElementTopPosition(object, parentY, closestParentY);
-
-    }
-
-    if (object.absoluteBoundingBox.width) {
-      elem["style"]["width"] = object.absoluteBoundingBox.width.toString() + "px";
-    }
-
-    if (object.absoluteBoundingBox.height) {
-      elem["style"]["height"] = object.absoluteBoundingBox.height.toString() + "px";
-    }
-
-  }
-
   // для текста 
-  if (type == "text") {
+  if (type == "TEXT") {
 
   }
 
   // для эллипса 
-  if (type == "ellipse") {
+  if (type == "ELLIPSE") {
     elem["style"]["border-radius"] = "100%";
   }
 
   // для прямоугольника 
-  if (type == "rectangle") {
+  if (type == "RECTANGLE") {
     if (object.cornerRadius) {
       elem["style"]["border-radius"] = object.cornerRadius + "px";
     }
