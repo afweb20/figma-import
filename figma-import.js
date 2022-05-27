@@ -20,7 +20,7 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
   var projectId = req.params.project_id;
   var nodeId = req.params.node_id;
 
-  // res.sendFile('views/index.html', {root: __dirname })
+  // получение картинок
   axios({
     method: "get",
     url: "https://api.figma.com/v1/files/" + projectId + "/images",
@@ -104,7 +104,34 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
   var closestParentY = closest_parent_y;
   var type = object.type; //type есть  всегда
 
-  if (type == "VECTOR=") {
+  if (type == "VECTOR") {
+
+    // для вектора формируем картинку, иначе никак 
+    // получение картинок
+    axios({
+      method: "get",
+      url: "https://api.figma.com/v1/images/" +  project_id + "?ids=" + object.id,
+      headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
+    }).then(function (response) {
+      if (response) {
+
+        console.log("hello!!!!", response, object.id, response.data.images[object.id])
+
+        if (response.data) {
+          if (response.data.images) {
+            if (response.data.images[object.id]) {
+              // elem["style"]["background-image"] = "url(" + response.data.images[object.id] + ")";
+              object.imageUrl = response.data.images[object.id];
+              console.log("hel33333lo!!!!",  object.imageUrl)
+
+            }
+          }
+        }
+      }
+    }).finally( function () {
+      console.log("i should go second");
+    });
+
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
     console.log("hello object.exportSettings", object.exportSettings);
@@ -252,8 +279,11 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
 
     console.log("~~~~~~~~~");
   }
+  
 
   var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX, closestParentY);
+
+  console.log("hello 33333 ", attributes, object);
 
   var html = "<div " + attributes + ">";
 
@@ -470,6 +500,12 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   }
 
+  if (type == "GROUP") {
+    elem["style"]["overflow"] = "hidden";
+
+    // console.log("hello object", object.isMask, object.isMaskOutline);
+  }
+
   // добавляем фон
   if (type != "TEXT") {
 
@@ -502,7 +538,7 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
                 if (images[fill.imageRef]) {
                   // console.log("hello fill", fill.imageRef, images[fill.imageRef]);
-                  console.log("hello fill", fill);
+                  // console.log("hello fill", fill);
 
                   elem["style"]["background-image"] = "url(" + images[fill.imageRef] + ")";
 
@@ -577,6 +613,34 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
     }
 
   }
+
+  // // для вектора формируем картинку, иначе никак 
+  // if (type == "VECTOR") {
+  //   // получение картинок
+  //   axios({
+  //     method: "get",
+  //     url: "https://api.figma.com/v1/images/" +  project_id + "?ids=" + object.id,
+  //     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
+  //   }).then(function (response) {
+  //     if (response) {
+
+  //       console.log("hello!!!!", response, object.id, response.data.images[object.id])
+
+  //       if (response.data) {
+  //         if (response.data.images) {
+  //           if (response.data.images[object.id]) {
+  //             elem["style"]["background-image"] = "url(" + response.data.images[object.id] + ")";
+
+  //             console.log("hel33333lo!!!!",  elem["style"])
+
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }).finally( function () {
+  //     console.log("i should go second");
+  //   });
+  // }
 
   // для текста 
   if (type == "TEXT") {
