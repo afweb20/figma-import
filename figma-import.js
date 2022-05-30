@@ -98,32 +98,52 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
   var closestParentY = closest_parent_y;
   var type = object.type; //type есть  всегда
 
-  if (type == "VECTOR") {
+  if (type == "FRAME") {
+    console.log("hello object.children", object.children);
+    console.log("hello object.locked", object.locked);
+    console.log("hello object.background", object.background);
+    console.log("hello object.backgroundColor", object.backgroundColor);
+    console.log("hello object.fills", object.fills);
+    console.log("hello object.strokes", object.strokes);
+    console.log("hello object.strokeWeight", object.strokeWeight);
+    console.log("hello object.strokeAlign", object.strokeAlign);
+    console.log("hello object.cornerRadius", object.cornerRadius);
+    console.log("hello object.rectangleCornerRadii", object.rectangleCornerRadii);
+    console.log("hello object.exportSettings", object.exportSettings);
+    console.log("hello object.blendMode", object.blendMode);
+    console.log("hello object.preserveRatio", object.preserveRatio);
+    console.log("hello object.constraints", object.constraints);
+    console.log("hello object.layoutAlign", object.layoutAlign);
+    console.log("hello object.transitionNodeID", object.transitionNodeID);
+    console.log("hello object.transitionDuration", object.transitionDuration);
+    console.log("hello object.transitionEasing", object.transitionEasing);
+    console.log("hello object.opacity", object.opacity);
+    console.log("hello object.absoluteBoundingBox", object.absoluteBoundingBox);
+    console.log("hello object.size", object.size);
+    console.log("hello object.relativeTransform", object.relativeTransform);
+    console.log("hello object.clipsContent", object.clipsContent);
+    console.log("hello object.layoutMode", object.layoutMode);
+    console.log("hello object.primaryAxisSizingMode", object.primaryAxisSizingMode);
+    console.log("hello object.counterAxisSizingMode", object.counterAxisSizingMode);
+    console.log("hello object.primaryAxisAlignItems", object.primaryAxisAlignItems);
+    console.log("hello object.counterAxisAlignItems", object.counterAxisAlignItems);
+    console.log("hello object.paddingLeft", object.paddingLeft);
+    console.log("hello object.paddingRight", object.paddingRight);
+    console.log("hello object.paddingTop", object.paddingTop);
+    console.log("hello object.paddingBottom", object.paddingBottom);
+    console.log("hello object.horizontalPadding", object.horizontalPadding);
+    console.log("hello object.verticalPadding", object.verticalPadding);
+    console.log("hello object.itemSpacing", object.itemSpacing);
+    console.log("hello object.layoutGrids", object.layoutGrids);
+    console.log("hello object.overflowDirection", object.overflowDirection);
+    console.log("hello object.effects", object.effects);
+    console.log("hello object.isMask", object.isMask);
+    console.log("hello object.isMaskOutline", object.isMaskOutline);
+    console.log("~~~~~~~~~");
+  }
 
-    // для вектора формируем картинку, иначе никак 
-    // получение картинок
-    var responseVectorImage = await axios({
-      method: "get",
-      url: "https://api.figma.com/v1/images/" +  project_id + "?ids=" + object.id,
-      headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
-    })
-    
-    if (responseVectorImage) {
+  if (type == "VECTOR=") {
 
-      // console.log("hello!!!!", responseVectorImage, object.id, responseVectorImage.data.images[object.id])
-
-      if (responseVectorImage.data) {
-        if (responseVectorImage.data.images) {
-          if (responseVectorImage.data.images[object.id]) {
-            // elem["style"]["background-image"] = "url(" + response.data.images[object.id] + ")";
-            object.imageUrl = responseVectorImage.data.images[object.id];
-            // console.log("hello responseVectorImage!!!!",  object.imageUrl)
-
-          }
-        }
-      }
-    }
-/*
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
     console.log("hello object.exportSettings", object.exportSettings);
@@ -152,7 +172,8 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
     console.log("hello object.strokeGeometry", object.strokeGeometry);
     console.log("hello object.strokeAlign", object.strokeAlign);
     console.log("hello object.styles", object.styles);
-    console.log("~~~~~~~~~"); */
+    console.log("~~~~~~~~~"); 
+
   }
 
   if (type == "TEXT=") {
@@ -270,6 +291,37 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
     console.log("hello object.rectangleCornerRadii", object.rectangleCornerRadii);
 
     console.log("~~~~~~~~~");
+  }
+
+
+  // формируем картинку для векторных элементов
+  if (type == "VECTOR") {
+
+    // для вектора формируем картинку, иначе никак 
+    // получение картинок
+    var responseVectorImage = await axios({
+      method: "get",
+      url: "https://api.figma.com/v1/images/" + project_id + "?ids=" + object.id,
+      headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
+    })
+
+    if (responseVectorImage) {
+
+      if (responseVectorImage.data) {
+
+        if (responseVectorImage.data.images) {
+
+          if (responseVectorImage.data.images[object.id]) {
+
+            object.imageUrl = responseVectorImage.data.images[object.id];
+
+          }
+
+        }
+
+      }
+
+    }
   }
   
 
@@ -511,6 +563,7 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
           var fill = fills[i];
           var fillType = fill.type;
 
+          /*
           if (fillType == "SOLID") {
 
             if (fill.color) {
@@ -520,7 +573,7 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
             }
 
-          }
+          }*/
 
           if (fillType == "IMAGE") {
 
@@ -606,6 +659,13 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   }
 
+  // добавляем фон
+  if (object.backgroundColor) {
+
+    elem["style"]["background-color"] = generateRgbaString(object.backgroundColor);
+
+  }
+
   // для вектора формируем картинку, иначе никак 
   if (type == "VECTOR") {
 
@@ -638,6 +698,8 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
       elem["style"]["border-bottom-left-radius"] = object.rectangleCornerRadii[3] + "px";
     }
   }
+
+  console.log("hello elem", elem);
 
   return generateStyleAttribute(elem);
 
