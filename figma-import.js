@@ -178,7 +178,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
   }
 
-  if (type == "TEXT" && object.id == "1:45") {
+  if (type == "TEXT=" && object.id == "1:62") {
     // тут всё от vector && object.id == "1:156"
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -257,7 +257,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
     console.log("~~~~~~~~~");
   }
 
-  if (type == "RECTANGLE=" && object.id == "1:37") {
+  if (type == "RECTANGLE" && object.id == "1:61") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -503,6 +503,8 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   elem["style"] = {};
   elem["class"] = "b-" + type.toLowerCase();
+  elem["style"]["box-sizing"] = "border-box";
+
 
   // добавляем position 
   if (object.id) {
@@ -709,7 +711,7 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
       }
 
     }
-    
+
   }
 
   // для эллипса 
@@ -719,15 +721,49 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   // для прямоугольника 
   if (type == "RECTANGLE") {
+
     if (object.cornerRadius) {
       elem["style"]["border-radius"] = object.cornerRadius + "px";
     }
+
     if (object.rectangleCornerRadii) {
       elem["style"]["border-top-left-radius"] = object.rectangleCornerRadii[0] + "px";
       elem["style"]["border-top-right-radius"] = object.rectangleCornerRadii[1] + "px";
       elem["style"]["border-bottom-right-radius"] = object.rectangleCornerRadii[2] + "px";
       elem["style"]["border-bottom-left-radius"] = object.rectangleCornerRadii[3] + "px";
     }
+
+    // добавляем бордер
+    if (object.strokes) {
+
+      if (object.strokes.length == 1) {
+
+        var stroke = object.strokes[0];
+
+        if (stroke.type) {
+
+          elem["style"]["border-style"] = stroke.type.toLowerCase();
+
+        }
+
+        if (stroke.color) {
+
+          elem["style"]["border-color"] = generateRgbaString(stroke.color);
+
+        }
+
+      }
+
+
+      if (object.strokeWeight) {
+
+        elem["style"]["border-width"] = object.strokeWeight + "px";
+    
+      }
+
+    }
+
+
   }
 
   // console.log("hello elem", elem);
