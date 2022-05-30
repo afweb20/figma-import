@@ -98,7 +98,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
   var closestParentY = closest_parent_y;
   var type = object.type; //type есть  всегда
 
-  if (type == "FRAME") {
+  if (type == "FRAME=") {
     console.log("hello object.children", object.children);
     console.log("hello object.locked", object.locked);
     console.log("hello object.background", object.background);
@@ -142,7 +142,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
     console.log("~~~~~~~~~");
   }
 
-  if (type == "VECTOR=") {
+  if (type == "VECTOR=" || type == "REGULAR_POLYGON=") {
 
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -176,8 +176,8 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
   }
 
-  if (type == "TEXT=") {
-    // тут всё от vector
+  if (type == "TEXT" && object.id == "1:59") {
+    // тут всё от vector && object.id == "1:156"
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
     console.log("hello object.exportSettings", object.exportSettings);
@@ -295,7 +295,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
 
   // формируем картинку для векторных элементов
-  if (type == "VECTOR") {
+  if (type == "VECTOR" || type == "REGULAR_POLYGON") {
 
     // для вектора формируем картинку, иначе никак 
     // получение картинок
@@ -550,8 +550,8 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
     // console.log("hello object", object.isMask, object.isMaskOutline);
   }
 
-  // добавляем фон
-  if (type != "TEXT") {
+  // добавляем фон (у vector & plygon добавляется фоновое изображение, фоновый цвет не нужен)
+  if (type != "TEXT" && type != "VECTOR" && type != "REGULAR_POLYGON") {
 
     var fills = object.fills;
 
@@ -563,17 +563,20 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
           var fill = fills[i];
           var fillType = fill.type;
 
-          /*
-          if (fillType == "SOLID") {
+          // если не добавлен backgroundColor
+          if (!object.backgroundColor) {
 
-            if (fill.color) {
+            if (fillType == "SOLID") {
 
-              elem["style"]["background-color"] = generateRgbaString(fill.color);
-              // elem["style"]["background-size"] = elem["style"]["width"] + " " + elem["style"]["height"];
+              if (fill.color) {
+
+                elem["style"]["background-color"] = generateRgbaString(fill.color);
+
+              }
 
             }
 
-          }*/
+          }
 
           if (fillType == "IMAGE") {
 
@@ -667,11 +670,14 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
   }
 
   // для вектора формируем картинку, иначе никак 
-  if (type == "VECTOR") {
+  if (type == "VECTOR" || type == "REGULAR_POLYGON") {
 
     if (object.imageUrl) {
 
       elem["style"]["background-image"] = "url(" + object.imageUrl + ")";
+      // elem["style"]["background-size"] = "cover";
+      // elem["style"]["background-position"] = "center";
+      elem["style"]["background-repeat"] = "no-repeat";
     }
 
   }
@@ -699,7 +705,7 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
     }
   }
 
-  console.log("hello elem", elem);
+  // console.log("hello elem", elem);
 
   return generateStyleAttribute(elem);
 
@@ -711,13 +717,35 @@ var setTextAttributes = function(object, key) {
   var elem = {};
   elem["style"] = {};
 
+  // добавляем цвет тексту 
+  if (object.fills) { 
+
+    if (object.fills.length == 1) {
+
+      if (object.fills[0].type == "SOLID") {
+
+        if (object.fills[0].color) {
+
+          elem["style"]["color"] = generateRgbaString(object.fills[0].color);
+
+        }
+
+      }
+
+    }
+
+  }
+
   if (object.style) {
 
     styles(object.style);
 
   }
 
-  // console.log("helllo key", object.styleOverrideTable[key]);
+  // textCase
+  // console.log("hello object.style", object.style);
+
+  // console.log("hello key", object.styleOverrideTable[key]);
 
   if (key) {
 
@@ -752,7 +780,7 @@ var setTextAttributes = function(object, key) {
 
         if (kebabKey == "line-height" || kebabKey == "font-size" || kebabKey == "letter-spacing") {
 
-          elem["style"][kebabKey] = styles[k] + "px";
+          elem["style"][kebabKey] = styles[k].toFixed(0) + "px";
 
         } else if (kebabKey == "font-family") {
 
@@ -773,6 +801,8 @@ var setTextAttributes = function(object, key) {
           var color = styles[k][0];
 
           if (color.type.toLowerCase() == "solid") {
+
+            // console.log("hello color", color);
 
             elem["style"]["color"] = generateRgbaString(color.color);
 
