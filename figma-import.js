@@ -4,6 +4,9 @@ const PORT = 8000;
 // http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/636:3/2 - зеленый фон с лого фо ру
 // http://localhost:8000/dms5Vr9yGfK445F3mncTz9/1%3A2/2 - webmoney video landing
 // http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/757%3A26/2 - webmoney files landing
+// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/811%3A10684/2 - дом доменов
+// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/811%3A28/2 - cashbox
+
 
 var express = require("express");
 var app = express();
@@ -91,7 +94,6 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
     });
 });
 
-
 var renderHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, images) {
 
   var closestParentX = closest_parent_x;
@@ -176,7 +178,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
   }
 
-  if (type == "TEXT" && object.id == "1:59") {
+  if (type == "TEXT" && object.id == "1:45") {
     // тут всё от vector && object.id == "1:156"
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -255,7 +257,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
     console.log("~~~~~~~~~");
   }
 
-  if (type == "RECTANGLE=") {
+  if (type == "RECTANGLE=" && object.id == "1:37") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -372,7 +374,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
             for (var i = 0; i < object.characterStyleOverrides.length; i++) {
 
-              if (!prev) {
+              if (prev == null) {
 
                 var arr = [];
                 arr.push(object.characterStyleOverrides[i]);
@@ -653,6 +655,12 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
           
           }
 
+          // добавляем прозрачность, если задана прозрачность фона
+          if (fill.opacity) {
+
+            elem["style"]["opacity"] = fill.opacity.toFixed(2);
+
+          }
 
         }
         
@@ -685,6 +693,23 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
   // для текста 
   if (type == "TEXT") {
 
+    // добавляем горизонтальное выравнивание
+    elem["style"]["text-align"] = "center";
+
+    if (object.constraints) {
+      
+      if (object.constraints.horizontal) {
+
+        if (object.constraints.horizontal == "LEFT") {
+
+          elem["style"]["text-align"] = object.constraints.horizontal.toLowerCase();
+
+        }
+
+      }
+
+    }
+    
   }
 
   // для эллипса 
