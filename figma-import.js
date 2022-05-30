@@ -15,33 +15,33 @@ var parentY = null;
 var fs = require('fs');
 var images = null;
 
-app.get("/:project_id/:node_id/:view", function (req, res) {
+app.get("/:project_id/:node_id/:view", async function (req, res) {
 
   var projectId = req.params.project_id;
   var nodeId = req.params.node_id;
 
   // получение картинок
-  axios({
+  var responseimg = await axios({
     method: "get",
     url: "https://api.figma.com/v1/files/" + projectId + "/images",
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
-  }).then(function (response) {
-    if (response) {
-      if (response.data) {
-        if (response.data.meta) {
-          if (response.data.meta.images) {
-            images = response.data.meta.images;
-          }
+  });
+
+  if (responseimg) {
+    if (responseimg.data) {
+      if (responseimg.data.meta) {
+        if (responseimg.data.meta.images) {
+          images = responseimg.data.meta.images;
         }
       }
     }
-  });
+  }
 
-  axios({
+  var response = await axios({
     method: "get",
     url: "https://api.figma.com/v1/files/" + projectId + "/nodes?ids=" + nodeId,
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
-  }).then(function (response) {
+  });
 
     // console.log("@@@@@@@@@@@@@@@@@@@@");
     // console.log(response.data);
@@ -68,7 +68,7 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
     // html += "</div>";
     // html += "<div> " + JSON.stringify(sitecontent) + "</div>";
 
-    var htmlBlock = renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, images);
+    var htmlBlock = await renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, images);
 
     fs.readFile('views/index.html', 'utf8', function (err,data) {
       if (err) {
@@ -89,16 +89,10 @@ app.get("/:project_id/:node_id/:view", function (req, res) {
       res.send(data);
 
     });
-
-    
-  });
-
-
-
 });
 
 
-var renderHtml = function (object, project_id, node_id, closest_parent_x, closest_parent_y, images) {
+var renderHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, images) {
 
   var closestParentX = closest_parent_x;
   var closestParentY = closest_parent_y;
@@ -108,30 +102,28 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
 
     // для вектора формируем картинку, иначе никак 
     // получение картинок
-    axios({
+    var response1234 = await axios({
       method: "get",
       url: "https://api.figma.com/v1/images/" +  project_id + "?ids=" + object.id,
       headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
-    }).then(function (response) {
-      if (response) {
+    })
+    
+    if (response1234) {
 
-        console.log("hello!!!!", response, object.id, response.data.images[object.id])
+      console.log("hello!!!!", response1234, object.id, response1234.data.images[object.id])
 
-        if (response.data) {
-          if (response.data.images) {
-            if (response.data.images[object.id]) {
-              // elem["style"]["background-image"] = "url(" + response.data.images[object.id] + ")";
-              object.imageUrl = response.data.images[object.id];
-              console.log("hel33333lo!!!!",  object.imageUrl)
+      if (response1234.data) {
+        if (response1234.data.images) {
+          if (response1234.data.images[object.id]) {
+            // elem["style"]["background-image"] = "url(" + response.data.images[object.id] + ")";
+            object.imageUrl = response1234.data.images[object.id];
+            console.log("hel33333lo!!!!",  object.imageUrl)
 
-            }
           }
         }
       }
-    }).finally( function () {
-      console.log("i should go second");
-    });
-
+    }
+/*
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
     console.log("hello object.exportSettings", object.exportSettings);
@@ -160,7 +152,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
     console.log("hello object.strokeGeometry", object.strokeGeometry);
     console.log("hello object.strokeAlign", object.strokeAlign);
     console.log("hello object.styles", object.styles);
-    console.log("~~~~~~~~~");
+    console.log("~~~~~~~~~"); */
   }
 
   if (type == "TEXT=") {
@@ -305,7 +297,7 @@ var renderHtml = function (object, project_id, node_id, closest_parent_x, closes
 
       for (var i = 0; i < object["children"].length; i++) {
 
-        html += renderHtml(object["children"][i], project_id, node_id, closestParentX, closestParentY);
+        html += await renderHtml(object["children"][i], project_id, node_id, closestParentX, closestParentY);
 
       }
 
