@@ -18,6 +18,11 @@ var parentY = null;
 var fs = require('fs');
 var images = null;
 
+// для разработки
+var loadedFonts = [];
+var loadedFontsString = "";
+
+
 app.get("/:project_id/:node_id/:view", async function (req, res) {
 
   var projectId = req.params.project_id;
@@ -73,12 +78,17 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
 
     var htmlBlock = await renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, images);
 
+    // для разработки
+    if (loadedFonts.length > 0) {
+      loadedFontsString = buildLoadedFontsString(loadedFonts);
+    }
+
     fs.readFile('views/index.html', 'utf8', function (err,data) {
       if (err) {
         return console.log(err);
       }
 
-      // Только для отображения на этапе разработки, потом нужно убрать 
+      // Только для отображения для разработки, потом нужно убрать 
       if (req.params.view == 0) {
         content = response.data.nodes[req.params.node_id].document;
       } else if (req.params.view == 1) {
@@ -86,6 +96,10 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
       } else if (req.params.view == 2) {
         content = htmlBlock; // визуально html
       }
+
+      // для разработки
+      data = data.replace(/\<\/head>/g, loadedFontsString + '</head>');
+
 
       data = data.replace(/\<\/body>/g, content + '</body>');
       // console.log(data);
@@ -523,7 +537,7 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   // TODO придумать что-то с маской, нужно предыдущему элементу ставить тот же css 
   if (object.isMask) {
-    console.log("hello Mask", object);
+    // console.log("hello Mask", object);
   }
 
   // размеры и позиционирование элемента (left && top)
@@ -875,7 +889,13 @@ var setTextAttributes = function(object, key) {
 
         } else if (kebabKey == "font-family") {
 
-          elem["style"][kebabKey] = "\"" + styles[k] + "\", sans-serif";
+          elem["style"][kebabKey] = "\"" + styles[k] + "\"";
+
+          // шрифты только для разработки
+          var fontString = styles[k].replace(/\s/g, "+");
+          if (loadedFonts.indexOf(fontString) == -1) {
+            loadedFonts.push(fontString);
+          }
 
         } else {
 
@@ -1161,6 +1181,23 @@ var escapeHtml = function (unsafe) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+// для разработки
+var buildLoadedFontsString = function (fonts) {
+
+  var fontsString = "";
+
+  for (var i = 0; i < fonts.length; i++) {
+
+    var font = fonts[i];
+
+    fontsString += "<link href=\"https://fonts.googleapis.com/css2?family=" + font + ":ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&&display=swap\" rel=\"stylesheet\">";
+
+  }
+
+  return fontsString;
+
 }
 
 app.listen(PORT, function () {
