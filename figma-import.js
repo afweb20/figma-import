@@ -257,7 +257,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
     console.log("~~~~~~~~~");
   }
 
-  if (type == "RECTANGLE" && object.id == "1:61") {
+  if (type == "RECTANGLE" && object.id == "1:161") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -549,7 +549,7 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
   }
 
   if (type == "GROUP") {
-    elem["style"]["overflow"] = "hidden";
+    // elem["style"]["overflow"] = "hidden";
 
     // console.log("hello object", object.isMask, object.isMaskOutline);
   }
@@ -680,6 +680,27 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
   if (object.backgroundColor) {
 
     elem["style"]["background-color"] = generateRgbaString(object.backgroundColor);
+
+  }
+
+  // добавляем эффекты (тени и тд)
+  if (object.effects) {
+
+    for (var i = 0; i < object.effects.length; i++ ) {
+
+      var effect = object.effects[i];
+
+      if (effect.type == "DROP_SHADOW") {
+
+        if (effect.visible) {
+
+          elem["style"]["box-shadow"] = effect.offset.x + " " + effect.offset.y + " " + effect.radius + "px " + generateRgbaString(effect.color);;
+
+        }
+
+      }
+
+    }
 
   }
 
