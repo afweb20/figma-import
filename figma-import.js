@@ -257,7 +257,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
     console.log("~~~~~~~~~");
   }
 
-  if (type == "RECTANGLE" && object.id == "1:161") {
+  if (type == "RECTANGLE=" && object.id == "1:102") {
     // тут всё от vector
     console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
     console.log("hello object.locked", object.locked);
@@ -519,6 +519,11 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
       elem["style"]["position"] = "absolute";
     }
     
+  }
+
+  // TODO придумать что-то с маской, нужно предыдущему элементу ставить тот же css 
+  if (object.isMask) {
+    console.log("hello Mask", object);
   }
 
   // размеры и позиционирование элемента (left && top)
