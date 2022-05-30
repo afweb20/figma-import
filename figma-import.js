@@ -102,22 +102,22 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
     // для вектора формируем картинку, иначе никак 
     // получение картинок
-    var response1234 = await axios({
+    var responseVectorImage = await axios({
       method: "get",
       url: "https://api.figma.com/v1/images/" +  project_id + "?ids=" + object.id,
       headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
     })
     
-    if (response1234) {
+    if (responseVectorImage) {
 
-      console.log("hello!!!!", response1234, object.id, response1234.data.images[object.id])
+      // console.log("hello!!!!", responseVectorImage, object.id, responseVectorImage.data.images[object.id])
 
-      if (response1234.data) {
-        if (response1234.data.images) {
-          if (response1234.data.images[object.id]) {
+      if (responseVectorImage.data) {
+        if (responseVectorImage.data.images) {
+          if (responseVectorImage.data.images[object.id]) {
             // elem["style"]["background-image"] = "url(" + response.data.images[object.id] + ")";
-            object.imageUrl = response1234.data.images[object.id];
-            console.log("hel33333lo!!!!",  object.imageUrl)
+            object.imageUrl = responseVectorImage.data.images[object.id];
+            // console.log("hello responseVectorImage!!!!",  object.imageUrl)
 
           }
         }
@@ -275,7 +275,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
   var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX, closestParentY);
 
-  console.log("hello 33333 ", attributes, object);
+  // console.log("hello 33333 ", attributes, object);
 
   var html = "<div " + attributes + ">";
 
@@ -606,33 +606,15 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   }
 
-  // // для вектора формируем картинку, иначе никак 
-  // if (type == "VECTOR") {
-  //   // получение картинок
-  //   axios({
-  //     method: "get",
-  //     url: "https://api.figma.com/v1/images/" +  project_id + "?ids=" + object.id,
-  //     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
-  //   }).then(function (response) {
-  //     if (response) {
+  // для вектора формируем картинку, иначе никак 
+  if (type == "VECTOR") {
 
-  //       console.log("hello!!!!", response, object.id, response.data.images[object.id])
+    if (object.imageUrl) {
 
-  //       if (response.data) {
-  //         if (response.data.images) {
-  //           if (response.data.images[object.id]) {
-  //             elem["style"]["background-image"] = "url(" + response.data.images[object.id] + ")";
+      elem["style"]["background-image"] = "url(" + object.imageUrl + ")";
+    }
 
-  //             console.log("hel33333lo!!!!",  elem["style"])
-
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }).finally( function () {
-  //     console.log("i should go second");
-  //   });
-  // }
+  }
 
   // для текста 
   if (type == "TEXT") {
@@ -784,7 +766,7 @@ var generateStyleAttribute = function (elem) {
     }
 
   }
-  
+
   return attributes;
 
 }
