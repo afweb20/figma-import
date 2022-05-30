@@ -601,6 +601,10 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
                 }
 
+                if (fill.imageTransform) {
+                  elem["style"]["background-size"] = "cover";
+                }
+
               }
             }
 
