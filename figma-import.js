@@ -6,6 +6,7 @@ const PORT = 8000;
 // http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/757%3A26/html - webmoney files landing
 // http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/811%3A10684/html - дом доменов
 // http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/811%3A28/html - cashbox
+// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/821%3A42/html - кусочек с files
 
 
 var express = require("express");
