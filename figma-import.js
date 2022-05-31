@@ -18,7 +18,7 @@ var parentY = null;
 var fs = require('fs');
 var images = null;
 
-// для разработки
+// для разработки (подгрузка шрифтов)
 var loadedFonts = [];
 var loadedFontsString = "";
 
@@ -45,6 +45,7 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
     }
   }
 
+  // получение всех элементов
   var response = await axios({
     method: "get",
     url: "https://api.figma.com/v1/files/" + projectId + "/nodes?ids=" + nodeId,
@@ -72,15 +73,15 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
     // html += "<div> " + JSON.stringify(sitecontent) + "</div>";
 
     var htmlBlock = await renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, images);
-    // var htmlBlock = "hello";
 
 
-    // для разработки
+    // для разработки (подгрузка шрифтов)
     if (loadedFonts.length > 0) {
       loadedFontsString = buildLoadedFontsString(loadedFonts);
     }
 
     fs.readFile('views/index.html', 'utf8', function (err,data) {
+
       if (err) {
         return console.log(err);
       }
@@ -98,49 +99,31 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
       data = data.replace(/\<\/head>/g, loadedFontsString + '</head>');
 
       data = data.replace(/\<\/body>/g, content + '</body>');
-      
+
       res.send(data);
 
     });
+
 });
 
-var renderHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, images) {
+
+
+var renderHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y) {
 
   var closestParentX = closest_parent_x;
   var closestParentY = closest_parent_y;
   var type = object.type; //type есть  всегда
+  var sitecontent = {}; 
 
   // формируем картинку для векторных элементов
   if (type == "VECTOR" || type == "REGULAR_POLYGON") {
 
     // для вектора формируем картинку, иначе никак 
-    // получение картинок
-    var responseVectorImage = await axios({
-      method: "get",
-      url: "https://api.figma.com/v1/images/" + project_id + "?ids=" + object.id,
-      headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
-    })
-
-    if (responseVectorImage) {
-
-      if (responseVectorImage.data) {
-
-        if (responseVectorImage.data.images) {
-
-          if (responseVectorImage.data.images[object.id]) {
-
-            object.imageUrl = responseVectorImage.data.images[object.id];
-
-          }
-
-        }
-
-      }
-
-    }
+    // генерация картинки из элемента
+    object.imageUrl = await generateImageFromElement(project_id, object.id); 
+    
   }
   
-
   var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX, closestParentY);
 
   var html = "<div " + attributes + ">";
@@ -284,6 +267,39 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
   return html;
 
 }
+
+var generateImageFromElement = async function (project_id, object_id) {
+
+  var image = null;
+
+  var responseVectorImage = await axios({
+    method: "get",
+    url: "https://api.figma.com/v1/images/" + project_id + "?ids=" + object_id,
+    headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
+  })
+
+  if (responseVectorImage) {
+
+    if (responseVectorImage.data) {
+
+      if (responseVectorImage.data.images) {
+
+        if (responseVectorImage.data.images[object_id]) {
+
+          image = responseVectorImage.data.images[object_id];
+
+        }
+
+      }
+
+    }
+
+  }
+
+  return image;
+
+}
+
 
 var generateElementid = function (len, charSet) {
 
