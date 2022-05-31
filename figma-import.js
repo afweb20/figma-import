@@ -116,7 +116,7 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
   sitecontent[elementid] = {};
   sitecontent[elementid]["nodeid"] = object.id;
   sitecontent[elementid]["classes"] = "b-" + type.toLowerCase();
-  sitecontent[elementid]["style"] = await createSitecontentStyles(object, project_id);
+  sitecontent[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y);
 
   // var attributes = setHtmlAttributes(object, project_id, node_id, closest_parent_x, closest_parent_y);
   var attributes = setHtmlAttributes(elementid, sitecontent);
@@ -298,7 +298,7 @@ var generateImageFromElement = async function (project_id, object_id) {
 }
 
 
-var createSitecontentStyles = async function (object, project_id) {
+var createSitecontentStyles = async function (object, project_id, node_id, closest_parent_x, closest_parent_y) {
 
   var type = object.type;
   var style = {};
@@ -315,63 +315,14 @@ var createSitecontentStyles = async function (object, project_id) {
     
   }
 
-  return style;
-  
-}
-
-
-var setHtmlAttributes = function (elementid, sitecontent) {
-
-  var attributes = " class=\"" + sitecontent[elementid]["classes"] + "\"";
-  attributes += " elementid=\"" + elementid + "\"";
-  attributes += " node-id=\"" + sitecontent[elementid]["nodeid"] + "\""; // исключить в будущем
-
-  return attributes;
-
-}
-
-
-var generateElementid = function (len, charSet) {
-
-  var i, randomPoz, randomString;
-  charSet = charSet || 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  randomString = '';
-  i = 0;
-  while (i < len) {
-    randomPoz = Math.floor(Math.random() * charSet.length);
-    randomString += charSet.substring(randomPoz, randomPoz + 1);
-    i++;
-  }
-  randomString = "el" + randomString;
-  return randomString.toLocaleLowerCase();
-
-}
-
-var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, closestParentY) {
-
-  var elem = {};
-  var type = object.type; // type - присутствует всегда
-
-  elem["style"] = {};
-  elem["class"] = "b-" + type.toLowerCase();
-  elem["style"]["box-sizing"] = "border-box";
-
-
   // добавляем position 
-  if (object.id) {
-
-    elem["node-id"] = object.id;
-    elem["elementid"] = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
-
-    if (object.id == node_id) {
-      elem["style"]["position"] = "relative"; //самый первый родитель, то есть - главный frame 
-      elem["style"]["overflow"] = "hidden";  //элементы могут выходить за пределы frame, поэтому overflow: hidden нужен
-    } else {
-      elem["style"]["position"] = "absolute";
-    }
-    
+  if (object.id == node_id) { 
+    style["position"] = "relative"; //самый первый родитель, то есть - главный frame 
+    style["overflow"] = "hidden";  //элементы могут выходить за пределы frame, поэтому overflow: hidden нужен
+  } else {
+    style["position"] = "absolute";
   }
-
+  
   // TODO придумать что-то с маской, нужно предыдущему элементу ставить тот же css 
   if (object.isMask) {
 
@@ -389,23 +340,19 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
       // высчитывать позицию, если родитель не x=0 & y=0, т е если iframe смещен
 
-      elem["style"]["left"] = getElementLeftPosition(object, parentX, closestParentX); 
-      elem["style"]["top"] = getElementTopPosition(object, parentY, closestParentY);
+      style["left"] = getElementLeftPosition(object, parentX, closest_parent_x); 
+      style["top"] = getElementTopPosition(object, parentY, closest_parent_y);
 
     }
 
     if (object.absoluteBoundingBox.width) {
-      elem["style"]["width"] = object.absoluteBoundingBox.width.toString() + "px";
+      style["width"] = object.absoluteBoundingBox.width.toString() + "px";
     }
 
     if (object.absoluteBoundingBox.height) {
-      elem["style"]["height"] = object.absoluteBoundingBox.height.toString() + "px";
+      style["height"] = object.absoluteBoundingBox.height.toString() + "px";
     }
 
-  }
-
-  if (type == "GROUP") {
-    // elem["style"]["overflow"] = "hidden";
   }
 
   // добавляем фон (у vector & plygon добавляется фоновое изображение, фоновый цвет не нужен)
@@ -428,7 +375,7 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
               if (fill.color) {
 
-                elem["style"]["background-color"] = generateRgbaString(fill.color);
+                style["background-color"] = generateRgbaString(fill.color);
 
               }
 
@@ -444,17 +391,17 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
                 if (images[fill.imageRef]) {
 
-                  elem["style"]["background-image"] = "url(" + images[fill.imageRef] + ")";
+                  style["background-image"] = "url(" + images[fill.imageRef] + ")";
 
                   if (fill.scaleMode == "FILL") {
-                    elem["style"]["background-size"] = "cover";
-                    elem["style"]["background-position"] = "center center";
+                    style["background-size"] = "cover";
+                    style["background-position"] = "center center";
                   }
 
                 }
 
                 if (fill.imageTransform) {
-                  elem["style"]["background-size"] = "cover";
+                  style["background-size"] = "cover";
                 }
 
               }
@@ -463,6 +410,7 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
           }
 
+          // TODO поправить градиент 
           if (fillType == "GRADIENT_LINEAR") {
 
             if (fill.gradientStops) {
@@ -495,25 +443,16 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
               gradient += ")";
 
-              elem["style"]["background-image"] = gradient;
+              style["background-image"] = gradient;
 
             }
-
-            // elem["style"]["background-image"] = "linear-gradient()";
-
-            // {
-            //   blendMode: 'NORMAL',
-            //   type: 'GRADIENT_LINEAR',
-            //   gradientHandlePositions: [ [Object], [Object], [Object] ],
-            //   gradientStops: [ [Object], [Object] ]
-            // }
           
           }
 
           // добавляем прозрачность, если задана прозрачность фона
           if (fill.opacity) {
 
-            elem["style"]["opacity"] = fill.opacity.toFixed(2);
+            style["opacity"] = fill.opacity.toFixed(2);
 
           }
 
@@ -528,7 +467,7 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
   // добавляем фон
   if (object.backgroundColor) {
 
-    elem["style"]["background-color"] = generateRgbaString(object.backgroundColor);
+    style["background-color"] = generateRgbaString(object.backgroundColor);
 
   }
 
@@ -543,7 +482,7 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
         if (effect.visible) {
 
-          elem["style"]["box-shadow"] = effect.offset.x + " " + effect.offset.y + " " + effect.radius + "px " + generateRgbaString(effect.color);;
+          style["box-shadow"] = effect.offset.x + " " + effect.offset.y + " " + effect.radius + "px " + generateRgbaString(effect.color);;
 
         }
 
@@ -553,24 +492,11 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
   }
 
-  // для вектора формируем картинку, иначе никак 
-  if (type == "VECTOR" || type == "REGULAR_POLYGON") {
-
-    if (object.imageUrl) {
-
-      elem["style"]["background-image"] = "url(" + object.imageUrl + ")";
-      // elem["style"]["background-size"] = "cover";
-      // elem["style"]["background-position"] = "center";
-      elem["style"]["background-repeat"] = "no-repeat";
-    }
-
-  }
-
   // для текста 
   if (type == "TEXT") {
 
-    // добавляем горизонтальное выравнивание
-    elem["style"]["text-align"] = "center";
+    // TODO проверить добавляем горизонтальное выравнивание
+    style["text-align"] = "center";
 
     if (object.constraints) {
       
@@ -578,7 +504,7 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
         if (object.constraints.horizontal == "LEFT") {
 
-          elem["style"]["text-align"] = object.constraints.horizontal.toLowerCase();
+          style["text-align"] = object.constraints.horizontal.toLowerCase();
 
         }
 
@@ -590,21 +516,23 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
   // для эллипса 
   if (type == "ELLIPSE") {
-    elem["style"]["border-radius"] = "100%";
+
+    style["border-radius"] = "100%";
+
   }
 
   // для прямоугольника 
   if (type == "RECTANGLE") {
 
     if (object.cornerRadius) {
-      elem["style"]["border-radius"] = object.cornerRadius + "px";
+      style["border-radius"] = object.cornerRadius + "px";
     }
 
     if (object.rectangleCornerRadii) {
-      elem["style"]["border-top-left-radius"] = object.rectangleCornerRadii[0] + "px";
-      elem["style"]["border-top-right-radius"] = object.rectangleCornerRadii[1] + "px";
-      elem["style"]["border-bottom-right-radius"] = object.rectangleCornerRadii[2] + "px";
-      elem["style"]["border-bottom-left-radius"] = object.rectangleCornerRadii[3] + "px";
+      style["border-top-left-radius"] = object.rectangleCornerRadii[0] + "px";
+      style["border-top-right-radius"] = object.rectangleCornerRadii[1] + "px";
+      style["border-bottom-right-radius"] = object.rectangleCornerRadii[2] + "px";
+      style["border-bottom-left-radius"] = object.rectangleCornerRadii[3] + "px";
     }
 
     // добавляем бордер
@@ -616,13 +544,13 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
         if (stroke.type) {
 
-          elem["style"]["border-style"] = stroke.type.toLowerCase();
+          style["border-style"] = stroke.type.toLowerCase();
 
         }
 
         if (stroke.color) {
 
-          elem["style"]["border-color"] = generateRgbaString(stroke.color);
+          style["border-color"] = generateRgbaString(stroke.color);
 
         }
 
@@ -631,7 +559,7 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
       if (object.strokeWeight) {
 
-        elem["style"]["border-width"] = object.strokeWeight + "px";
+        style["border-width"] = object.strokeWeight + "px";
     
       }
 
@@ -640,9 +568,41 @@ var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, 
 
   }
 
-  return generateStyleAttribute(elem);
+  return style;
+  
+}
+
+
+var setHtmlAttributes = function (elementid, sitecontent) {
+
+  var attributes = " class=\"" + sitecontent[elementid]["classes"] + "\"";
+  attributes += " elementid=\"" + elementid + "\"";
+  attributes += " node-id=\"" + sitecontent[elementid]["nodeid"] + "\""; // исключить в будущем
+
+
+  var styleKeys = Object.keys(sitecontent[elementid]["style"]);
+
+  if (styleKeys.length > 0) {
+
+    attributes += " style=\"";
+
+    for (var i = 0; i < styleKeys.length; i++) {
+
+      var k = styleKeys[i];
+
+      attributes += k + ": " + sitecontent[elementid]["style"][k] + "; " ;
+
+    }
+
+    attributes += "\""; 
+
+  }
+
+
+  return attributes;
 
 }
+
 
 var setTextAttributes = function(object, key) {
 
@@ -714,7 +674,7 @@ var setTextAttributes = function(object, key) {
 
           elem["style"][kebabKey] = "\"" + styles[k] + "\"";
 
-          // шрифты только для разработки
+          // для разработки  (подгрузка шрифтов)
           var fontString = styles[k].replace(/\s/g, "+");
           if (loadedFonts.indexOf(fontString) == -1) {
             loadedFonts.push(fontString);
@@ -792,85 +752,6 @@ var generateStyleAttribute = function (elem) {
   }
 
   return attributes;
-
-}
-
-var generateSitecontent = function (object, node_id, elementid) {
-
-  var sitecontent = {};
-  var keys = Object.keys(object);
-  var isParentIframe = false;
-  sitecontent[elementid] = {};
-
-  if (node_id) {
-    if (object.id) {
-      if (object.id == node_id) {
-        isParentIframe = true;
-      }
-    }
-  }
-
-  for (var i = 0; i < keys.length; i++) {
-
-    var key = keys[i];
-
-    // type - String
-    // The type of the node, refer to table below for details.
-    if (key == "type") {
-
-      if (object[key] == "FRAME") {
-
-        sitecontent[elementid]["classes"] = "fgm-node-type-frame";
-        sitecontent[elementid]["style"] = {};
-
-      } else {
-
-        alert("Ошибка! Родительский элемент не является фреймом!");
-        return false;
-
-      }
-
-    }
-
-
-    // absoluteBoundingBox - Object
-    // Bounding box of the node in absolute space coordinates
-    if (key == "absoluteBoundingBox") {
-
-      if (object[key]["width"]) {
-
-        sitecontent[elementid]["style"]["width"] = object[key]["width"].toString() + "px";
-
-      }
-
-      if (object[key]["height"]) {
-
-        sitecontent[elementid]["style"]["height"] = object[key]["height"].toString() + "px";
-
-      }
-
-    }
-
-
-    // fills - Array of objects
-    // An array of fill paints applied to the node
-    if (key == "fills") {
-
-      if (object[key].length == 1) {
-
-        if (object[key][0]["color"]) {
-
-          sitecontent[elementid]["style"]["background-color"] = generateRgbaString(object[key][0]["color"]);
-
-        }
-
-      }
-
-    }
-
-  }
-
-  return sitecontent;
 
 }
 
@@ -1002,7 +883,7 @@ var escapeHtml = function (unsafe) {
         .replace(/'/g, "&#039;");
 }
 
-// для разработки
+// для разработки  (подгрузка шрифтов) 
 var buildLoadedFontsString = function (fonts) {
 
   var fontsString = "";
