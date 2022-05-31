@@ -51,9 +51,6 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
   });
 
-    // console.log("@@@@@@@@@@@@@@@@@@@@");
-    // console.log(response.data);
-
     // var sitecontent = [];
     // var elementid = generateElementid(32);
 
@@ -62,8 +59,6 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
     //   if (response.data.nodes) {
     //     if (response.data.nodes[nodeId]) {
     //       if (response.data.nodes[nodeId].document) {
-
-    //         console.log(response.data.nodes[nodeId].document);
 
     //         sitecontent = generateSitecontent(response.data.nodes[nodeId].document, nodeId, elementid);
 
@@ -77,6 +72,8 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
     // html += "<div> " + JSON.stringify(sitecontent) + "</div>";
 
     var htmlBlock = await renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, images);
+    // var htmlBlock = "hello";
+
 
     // для разработки
     if (loadedFonts.length > 0) {
@@ -100,9 +97,8 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
       // для разработки
       data = data.replace(/\<\/head>/g, loadedFontsString + '</head>');
 
-
       data = data.replace(/\<\/body>/g, content + '</body>');
-      // console.log(data);
+      
       res.send(data);
 
     });
@@ -113,202 +109,6 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
   var closestParentX = closest_parent_x;
   var closestParentY = closest_parent_y;
   var type = object.type; //type есть  всегда
-
-  if (type == "FRAME=") {
-    console.log("hello object.children", object.children);
-    console.log("hello object.locked", object.locked);
-    console.log("hello object.background", object.background);
-    console.log("hello object.backgroundColor", object.backgroundColor);
-    console.log("hello object.fills", object.fills);
-    console.log("hello object.strokes", object.strokes);
-    console.log("hello object.strokeWeight", object.strokeWeight);
-    console.log("hello object.strokeAlign", object.strokeAlign);
-    console.log("hello object.cornerRadius", object.cornerRadius);
-    console.log("hello object.rectangleCornerRadii", object.rectangleCornerRadii);
-    console.log("hello object.exportSettings", object.exportSettings);
-    console.log("hello object.blendMode", object.blendMode);
-    console.log("hello object.preserveRatio", object.preserveRatio);
-    console.log("hello object.constraints", object.constraints);
-    console.log("hello object.layoutAlign", object.layoutAlign);
-    console.log("hello object.transitionNodeID", object.transitionNodeID);
-    console.log("hello object.transitionDuration", object.transitionDuration);
-    console.log("hello object.transitionEasing", object.transitionEasing);
-    console.log("hello object.opacity", object.opacity);
-    console.log("hello object.absoluteBoundingBox", object.absoluteBoundingBox);
-    console.log("hello object.size", object.size);
-    console.log("hello object.relativeTransform", object.relativeTransform);
-    console.log("hello object.clipsContent", object.clipsContent);
-    console.log("hello object.layoutMode", object.layoutMode);
-    console.log("hello object.primaryAxisSizingMode", object.primaryAxisSizingMode);
-    console.log("hello object.counterAxisSizingMode", object.counterAxisSizingMode);
-    console.log("hello object.primaryAxisAlignItems", object.primaryAxisAlignItems);
-    console.log("hello object.counterAxisAlignItems", object.counterAxisAlignItems);
-    console.log("hello object.paddingLeft", object.paddingLeft);
-    console.log("hello object.paddingRight", object.paddingRight);
-    console.log("hello object.paddingTop", object.paddingTop);
-    console.log("hello object.paddingBottom", object.paddingBottom);
-    console.log("hello object.horizontalPadding", object.horizontalPadding);
-    console.log("hello object.verticalPadding", object.verticalPadding);
-    console.log("hello object.itemSpacing", object.itemSpacing);
-    console.log("hello object.layoutGrids", object.layoutGrids);
-    console.log("hello object.overflowDirection", object.overflowDirection);
-    console.log("hello object.effects", object.effects);
-    console.log("hello object.isMask", object.isMask);
-    console.log("hello object.isMaskOutline", object.isMaskOutline);
-    console.log("~~~~~~~~~");
-  }
-
-  if (type == "VECTOR=" || type == "REGULAR_POLYGON=") {
-
-    console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
-    console.log("hello object.locked", object.locked);
-    console.log("hello object.exportSettings", object.exportSettings);
-    console.log("hello object.blendMode", object.blendMode);
-    console.log("hello object.preserveRatio", object.preserveRatio);
-    console.log("hello object.layoutAlign", object.layoutAlign);
-    console.log("hello object.layoutGrow", object.layoutGrow);
-    console.log("hello object.constraints", object.constraints);
-    console.log("hello object.transitionNodeID", object.transitionNodeID);
-    console.log("hello object.transitionDuration", object.transitionDuration);
-    console.log("hello object.transitionEasing", object.transitionEasing);
-    console.log("hello object.opacity", object.opacity);
-    console.log("hello object.absoluteBoundingBox", object.absoluteBoundingBox);
-    console.log("hello object.effects", object.effects);
-    console.log("hello object.size", object.size);
-    console.log("hello object.relativeTransform", object.relativeTransform);
-    console.log("hello object.isMask", object.isMask);
-    console.log("hello object.fills", object.fills);
-    console.log("hello object.fillGeometry", object.fillGeometry);
-    console.log("hello object.strokes", object.strokes);
-    console.log("hello object.strokeWeight", object.strokeWeight);
-    console.log("hello object.strokeCap", object.strokeCap);
-    console.log("hello object.strokeJoin", object.strokeJoin);
-    console.log("hello object.strokeDashes", object.strokeDashes);
-    console.log("hello object.strokeMiterAngle", object.strokeMiterAngle);
-    console.log("hello object.strokeGeometry", object.strokeGeometry);
-    console.log("hello object.strokeAlign", object.strokeAlign);
-    console.log("hello object.styles", object.styles);
-    console.log("~~~~~~~~~"); 
-
-  }
-
-  if (type == "TEXT=" && object.id == "1:62") {
-    // тут всё от vector && object.id == "1:156"
-    console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
-    console.log("hello object.locked", object.locked);
-    console.log("hello object.exportSettings", object.exportSettings);
-    console.log("hello object.blendMode", object.blendMode);
-    console.log("hello object.preserveRatio", object.preserveRatio);
-    console.log("hello object.layoutAlign", object.layoutAlign);
-    console.log("hello object.layoutGrow", object.layoutGrow);
-    console.log("hello object.constraints", object.constraints);
-    console.log("hello object.transitionNodeID", object.transitionNodeID);
-    console.log("hello object.transitionDuration", object.transitionDuration);
-    console.log("hello object.transitionEasing", object.transitionEasing);
-    console.log("hello object.opacity", object.opacity);
-    console.log("hello object.absoluteBoundingBox", object.absoluteBoundingBox);
-    console.log("hello object.effects", object.effects);
-    console.log("hello object.size", object.size);
-    console.log("hello object.relativeTransform", object.relativeTransform);
-    console.log("hello object.isMask", object.isMask);
-    console.log("hello object.fills", object.fills);
-    console.log("hello object.fillGeometry", object.fillGeometry);
-    console.log("hello object.strokes", object.strokes);
-    console.log("hello object.strokeWeight", object.strokeWeight);
-    console.log("hello object.strokeCap", object.strokeCap);
-    console.log("hello object.strokeJoin", object.strokeJoin);
-    console.log("hello object.strokeDashes", object.strokeDashes);
-    console.log("hello object.strokeMiterAngle", object.strokeMiterAngle);
-    console.log("hello object.strokeGeometry", object.strokeGeometry);
-    console.log("hello object.strokeAlign", object.strokeAlign);
-    console.log("hello object.styles", object.styles);
-
-    // + дополнительно 
-    console.log("hello object.characters", object.characters);
-    console.log("hello object.characterStyleOverrides", object.characterStyleOverrides);
-    console.log("hello object.styleOverrideTable", object.styleOverrideTable);
-    console.log("hello object.lineTypes", object.lineTypes);
-    console.log("hello object.lineIndentations", object.lineIndentations);
-
-
-    console.log("~~~~~~~~~");
-  }
-
-  if (type == "ELLIPSE=") {
-    // тут всё от vector
-    console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
-    console.log("hello object.locked", object.locked);
-    console.log("hello object.exportSettings", object.exportSettings);
-    console.log("hello object.blendMode", object.blendMode);
-    console.log("hello object.preserveRatio", object.preserveRatio);
-    console.log("hello object.layoutAlign", object.layoutAlign);
-    console.log("hello object.layoutGrow", object.layoutGrow);
-    console.log("hello object.constraints", object.constraints);
-    console.log("hello object.transitionNodeID", object.transitionNodeID);
-    console.log("hello object.transitionDuration", object.transitionDuration);
-    console.log("hello object.transitionEasing", object.transitionEasing);
-    console.log("hello object.opacity", object.opacity);
-    console.log("hello object.absoluteBoundingBox", object.absoluteBoundingBox);
-    console.log("hello object.effects", object.effects);
-    console.log("hello object.size", object.size);
-    console.log("hello object.relativeTransform", object.relativeTransform);
-    console.log("hello object.isMask", object.isMask);
-    console.log("hello object.fills", object.fills);
-    console.log("hello object.fillGeometry", object.fillGeometry);
-    console.log("hello object.strokes", object.strokes);
-    console.log("hello object.strokeWeight", object.strokeWeight);
-    console.log("hello object.strokeCap", object.strokeCap);
-    console.log("hello object.strokeJoin", object.strokeJoin);
-    console.log("hello object.strokeDashes", object.strokeDashes);
-    console.log("hello object.strokeMiterAngle", object.strokeMiterAngle);
-    console.log("hello object.strokeGeometry", object.strokeGeometry);
-    console.log("hello object.strokeAlign", object.strokeAlign);
-    console.log("hello object.styles", object.styles);
-
-    // + дополнительно 
-    console.log("hello object.arcData", object.arcData);
-
-    console.log("~~~~~~~~~");
-  }
-
-  if (type == "RECTANGLE=" && object.id == "1:102") {
-    // тут всё от vector
-    console.log("hello obj", object.id, object.name, object.visible, object.type, object.pluginData, object.sharedPluginData);
-    console.log("hello object.locked", object.locked);
-    console.log("hello object.exportSettings", object.exportSettings);
-    console.log("hello object.blendMode", object.blendMode);
-    console.log("hello object.preserveRatio", object.preserveRatio);
-    console.log("hello object.layoutAlign", object.layoutAlign);
-    console.log("hello object.layoutGrow", object.layoutGrow);
-    console.log("hello object.constraints", object.constraints);
-    console.log("hello object.transitionNodeID", object.transitionNodeID);
-    console.log("hello object.transitionDuration", object.transitionDuration);
-    console.log("hello object.transitionEasing", object.transitionEasing);
-    console.log("hello object.opacity", object.opacity);
-    console.log("hello object.absoluteBoundingBox", object.absoluteBoundingBox);
-    console.log("hello object.effects", object.effects);
-    console.log("hello object.size", object.size);
-    console.log("hello object.relativeTransform", object.relativeTransform);
-    console.log("hello object.isMask", object.isMask);
-    console.log("hello object.fills", object.fills);
-    console.log("hello object.fillGeometry", object.fillGeometry);
-    console.log("hello object.strokes", object.strokes);
-    console.log("hello object.strokeWeight", object.strokeWeight);
-    console.log("hello object.strokeCap", object.strokeCap);
-    console.log("hello object.strokeJoin", object.strokeJoin);
-    console.log("hello object.strokeDashes", object.strokeDashes);
-    console.log("hello object.strokeMiterAngle", object.strokeMiterAngle);
-    console.log("hello object.strokeGeometry", object.strokeGeometry);
-    console.log("hello object.strokeAlign", object.strokeAlign);
-    console.log("hello object.styles", object.styles);
-
-    // + дополнительно 
-    console.log("hello object.cornerRadius", object.cornerRadius);
-    console.log("hello object.rectangleCornerRadii", object.rectangleCornerRadii);
-
-    console.log("~~~~~~~~~");
-  }
-
 
   // формируем картинку для векторных элементов
   if (type == "VECTOR" || type == "REGULAR_POLYGON") {
@@ -343,8 +143,6 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
   var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX, closestParentY);
 
-  // console.log("hello 33333 ", attributes, object);
-
   var html = "<div " + attributes + ">";
 
   if (object["children"]) {
@@ -372,8 +170,6 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
     }
 
   } else {
-
-    // console.log("NO child");
 
     if (type == "TEXT") {
 
@@ -417,8 +213,6 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
           }
         }
 
-        // console.log("@@@@@@ array_of_arrs ", array_of_arrs, string);
-
         if (array_of_arrs.length > 0) {
 
           var prevIndex = 0;
@@ -446,8 +240,6 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
               htmStr += "</span>";
 
             }
-
-            // console.log("@@@@@", prevIndex, ar.length, string, htmStr);
 
             prevIndex = ar.length;
             
@@ -493,7 +285,6 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
 }
 
-
 var generateElementid = function (len, charSet) {
 
   var i, randomPoz, randomString;
@@ -537,7 +328,7 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   // TODO придумать что-то с маской, нужно предыдущему элементу ставить тот же css 
   if (object.isMask) {
-    // console.log("hello Mask", object);
+
   }
 
   // размеры и позиционирование элемента (left && top)
@@ -569,8 +360,6 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   if (type == "GROUP") {
     // elem["style"]["overflow"] = "hidden";
-
-    // console.log("hello object", object.isMask, object.isMaskOutline);
   }
 
   // добавляем фон (у vector & plygon добавляется фоновое изображение, фоновый цвет не нужен)
@@ -608,8 +397,6 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
               if (images) {
 
                 if (images[fill.imageRef]) {
-                  // console.log("hello fill", fill.imageRef, images[fill.imageRef]);
-                  // console.log("hello fill", fill);
 
                   elem["style"]["background-image"] = "url(" + images[fill.imageRef] + ")";
 
@@ -631,9 +418,6 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
           }
 
           if (fillType == "GRADIENT_LINEAR") {
-
-            // console.log("hello GRADIENT_LINEAR", fill.gradientHandlePositions);
-            // console.log("hello GRADIENT_LINEAR2", fill.gradientStops);
 
             if (fill.gradientStops) {
 
@@ -810,8 +594,6 @@ var setHtmlAttributes = function (object, project_id, node_id, closestParentX, c
 
   }
 
-  // console.log("hello elem", elem);
-
   return generateStyleAttribute(elem);
 
 }
@@ -846,11 +628,6 @@ var setTextAttributes = function(object, key) {
     styles(object.style);
 
   }
-
-  // textCase
-  // console.log("hello object.style", object.style);
-
-  // console.log("hello key", object.styleOverrideTable[key]);
 
   if (key) {
 
@@ -912,8 +689,6 @@ var setTextAttributes = function(object, key) {
           var color = styles[k][0];
 
           if (color.type.toLowerCase() == "solid") {
-
-            // console.log("hello color", color);
 
             elem["style"]["color"] = generateRgbaString(color.color);
 
@@ -1001,8 +776,6 @@ var generateSitecontent = function (object, node_id, elementid) {
 
         sitecontent[elementid]["classes"] = "fgm-node-type-frame";
         sitecontent[elementid]["style"] = {};
-
-        console.log("Efewgewgewgwg", elementid)
 
       } else {
 
