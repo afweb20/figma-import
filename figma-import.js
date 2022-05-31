@@ -55,47 +55,44 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
 
   // var htmlBlock = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
 
-  // для разработки (подгрузка шрифтов)
-  if (loadedFonts.length > 0) {
-    loadedFontsString = buildLoadedFontsString(loadedFonts);
-  }
+  if (req.params.view == "sitecontent") {
 
-  fs.readFile('views/index.html', 'utf8', async function (err, data) {
+    content = await getSitecontent(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
+    res.send(content);
 
-    if (err) {
-      return console.log(err);
-    }
+  } else if (req.params.view == "html") {
 
-    // Только для отображения для разработки, потом нужно убрать 
-    if (req.params.view == 0) {
+    fs.readFile('views/index.html', 'utf8', async function (err, data) {
 
-      content = response.data.nodes[req.params.node_id].document;
+      if (err) {
+        return console.log(err);
+      }
 
-    } else if (req.params.view == "sitecontent") {
+      content = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
 
-      content = await getSitecontent(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
-
-    } else if (req.params.view == "html") {
+      // для разработки (подгрузка шрифтов)
+      if (loadedFonts.length > 0) {
+        loadedFontsString = buildLoadedFontsString(loadedFonts);
+      }
 
       // для разработки
       data = data.replace(/\<\/head>/g, loadedFontsString + '</head>');
-
-      content = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
 
       data = data.replace(/\<\/body>/g, content + '</body>');
 
       res.send(data);
 
-    } else if (req.params.view == "himalaya") {
+    });
 
-      html = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
-      var json = himalaya.parse(html);
-      content = json;
-      res.send(content);
+  } else if (req.params.view == "himalaya") {
 
-    }
+    html = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
+    var json = himalaya.parse(html);
+    content = json;
+    res.send(content);
 
-  });
+  }
+
 
 });
 
