@@ -17,6 +17,7 @@ var parentX = null;
 var parentY = null;
 var fs = require('fs');
 var images = null;
+var himalaya = require("himalaya");
 
 // для разработки (подгрузка шрифтов)
 var loadedFonts = [];
@@ -52,14 +53,14 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
   });
 
-  var htmlBlock = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
+  // var htmlBlock = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
 
   // для разработки (подгрузка шрифтов)
   if (loadedFonts.length > 0) {
     loadedFontsString = buildLoadedFontsString(loadedFonts);
   }
 
-  fs.readFile('views/index.html', 'utf8', function (err, data) {
+  fs.readFile('views/index.html', 'utf8', async function (err, data) {
 
     if (err) {
       return console.log(err);
@@ -67,19 +68,32 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
 
     // Только для отображения для разработки, потом нужно убрать 
     if (req.params.view == 0) {
+
       content = response.data.nodes[req.params.node_id].document;
-    } else if (req.params.view == 1) {
-      // content = html;
-    } else if (req.params.view == 2) {
-      content = htmlBlock; // визуально html
+
+    } else if (req.params.view == "sitecontent") {
+
+      content = await getSitecontent(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
+
+    } else if (req.params.view == "html") {
+
+      // для разработки
+      data = data.replace(/\<\/head>/g, loadedFontsString + '</head>');
+
+      content = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
+
+      data = data.replace(/\<\/body>/g, content + '</body>');
+
+      res.send(data);
+
+    } else if (req.params.view == "himalaya") {
+
+      html = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
+      var json = himalaya.parse(html);
+      content = json;
+      res.send(content);
+
     }
-
-    // для разработки
-    data = data.replace(/\<\/head>/g, loadedFontsString + '</head>');
-
-    data = data.replace(/\<\/body>/g, content + '</body>');
-
-    res.send(data);
 
   });
 
@@ -144,113 +158,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
       if (object.characters) {
 
-
-        var string = object.characters;
-        var arrayOfCharArrays = [];
-        var prev = null;
-
-        if (object.characterStyleOverrides) {
-          if (object.characterStyleOverrides.length > 0) {
-
-            for (var i = 0; i < object.characterStyleOverrides.length; i++) {
-
-              if (prev == null) {
-
-                var arr = [];
-                arr.push(object.characterStyleOverrides[i]);
-                arrayOfCharArrays.push(arr);
-
-              } else {
-
-                if (prev != object.characterStyleOverrides[i]) {
-
-                  var arr = [];
-                  arr.push(object.characterStyleOverrides[i]);
-                  arrayOfCharArrays.push(arr);
-
-                } else {
-
-                  arr.push(object.characterStyleOverrides[i]);
-
-                }
-
-              }
-
-              prev = object.characterStyleOverrides[i];
-
-            }
-
-          }
-        }
-
-        if (arrayOfCharArrays.length > 0) {
-
-          elementObject[elementid]["children"] = [];
-
-          var prevIndex = 0;
-
-          for (var i = 0; i < arrayOfCharArrays.length; i++) {
-
-            var index = i + 1;
-            var childTextElementid = elementid + "_text" + index;
-            var child = {};
-            child[childTextElementid] = {};
-            child[childTextElementid]["classes"] = "b-text-string";
-
-            var ar = arrayOfCharArrays[i];
-            var key = ar[0];
-            child[childTextElementid]["style"] = generateTextStyles(null, object, key);
-
-            var lastIndex = ar.length + prevIndex;
-            var text = string.substring(prevIndex, lastIndex);
-            var match = /\r|\n/.exec(text);
-
-            if (match) {
-
-              text = text.replace(/(?:\r\n|\r|\n)/g, '');
-              child[childTextElementid]["tag"] = "div";
-
-            } else {
-
-              child[childTextElementid]["tag"] = "span";
-
-            }
-
-            child[childTextElementid]["text"] = escapeHtml(text);
-
-            prevIndex = ar.length;
-
-            elementObject[elementid]["children"].push(child);
-
-          }
-
-        } else {
-          
-          // TODO обработать 
-          
-          var text = string;
-          var match = /\r|\n/.exec(text);
-          var style = elementObject[elementid]["style"];
-
-          elementObject[elementid]["style"] = generateTextStyles(style, object, key);
-
-          if (match) {
-            
-            text = text.replace(/(?:\r\n|\r|\n)/g, '');
-
-            elementObject[elementid]["tag"] = "div";
-
-          } else {
-
-            elementObject[elementid]["tag"] = "span";
-
-          }
-
-          elementObject[elementid]["text"] = escapeHtml(text);
-
-         
-
-        }
+        elementObject[elementid] = addTextPropertiesToObject(object, elementObject, elementid);
 
       }
 
@@ -355,6 +263,15 @@ var getHtml = async function (object, project_id, node_id, closest_parent_x, clo
   }
 
   return html;
+
+}
+
+
+var getSitecontent = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid) {
+
+  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid);
+
+  return "";
 
 }
 
@@ -808,6 +725,117 @@ var generateTextStyles = function (style, object, key) {
   return style;
 
 };
+
+
+var addTextPropertiesToObject = function (object, elementObject, elementid) {
+
+  var string = object.characters;
+  var arrayOfCharArrays = [];
+  var prev = null;
+
+  if (object.characterStyleOverrides) {
+    if (object.characterStyleOverrides.length > 0) {
+
+      for (var i = 0; i < object.characterStyleOverrides.length; i++) {
+
+        if (prev == null) {
+
+          var arr = [];
+          arr.push(object.characterStyleOverrides[i]);
+          arrayOfCharArrays.push(arr);
+
+        } else {
+
+          if (prev != object.characterStyleOverrides[i]) {
+
+            var arr = [];
+            arr.push(object.characterStyleOverrides[i]);
+            arrayOfCharArrays.push(arr);
+
+          } else {
+
+            arr.push(object.characterStyleOverrides[i]);
+
+          }
+
+        }
+
+        prev = object.characterStyleOverrides[i];
+
+      }
+
+    }
+  }
+
+  if (arrayOfCharArrays.length > 0) {
+
+    elementObject[elementid]["children"] = [];
+
+    var prevIndex = 0;
+
+    for (var i = 0; i < arrayOfCharArrays.length; i++) {
+
+      var index = i + 1;
+      var childTextElementid = elementid + "_text" + index;
+      var child = {};
+      child[childTextElementid] = {};
+      child[childTextElementid]["classes"] = "b-text-string";
+
+      var ar = arrayOfCharArrays[i];
+      var key = ar[0];
+      child[childTextElementid]["style"] = generateTextStyles(null, object, key);
+
+      var lastIndex = ar.length + prevIndex;
+      var text = string.substring(prevIndex, lastIndex);
+      var match = /\r|\n/.exec(text);
+
+      if (match) {
+
+        text = text.replace(/(?:\r\n|\r|\n)/g, '');
+        child[childTextElementid]["tag"] = "div";
+
+      } else {
+
+        child[childTextElementid]["tag"] = "span";
+
+      }
+
+      child[childTextElementid]["text"] = escapeHtml(text);
+
+      prevIndex = ar.length;
+
+      elementObject[elementid]["children"].push(child);
+
+    }
+
+  } else {
+    
+    var text = string;
+    var match = /\r|\n/.exec(text);
+    var style = elementObject[elementid]["style"];
+
+    elementObject[elementid]["style"] = generateTextStyles(style, object, key);
+
+    if (match) {
+      
+      text = text.replace(/(?:\r\n|\r|\n)/g, '');
+
+      elementObject[elementid]["tag"] = "div";
+
+    } else {
+
+      elementObject[elementid]["tag"] = "span";
+
+    }
+
+    elementObject[elementid]["text"] = escapeHtml(text);
+
+  }
+
+  return elementObject[elementid];
+
+}
+
 
 var generateStyleAttribute = function (elem) {
 
