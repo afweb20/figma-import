@@ -631,37 +631,6 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 }
 
 
-var setHtmlAttributes = function (elementid, sitecontent) {
-
-  var attributes = " class=\"" + sitecontent[elementid]["classes"] + "\"";
-  attributes += " elementid=\"" + elementid + "\"";
-  attributes += " node-id=\"" + sitecontent[elementid]["nodeid"] + "\""; // исключить в будущем
-
-
-  var styleKeys = Object.keys(sitecontent[elementid]["style"]);
-
-  if (styleKeys.length > 0) {
-
-    attributes += " style=\"";
-
-    for (var i = 0; i < styleKeys.length; i++) {
-
-      var k = styleKeys[i];
-
-      attributes += k + ": " + sitecontent[elementid]["style"][k] + "; ";
-
-    }
-
-    attributes += "\"";
-
-  }
-
-
-  return attributes;
-
-}
-
-
 var generateTextStyles = function (style, object, key) {
 
   var availableStyles = ["font-family", "font-weight", "font-size", "letter-spacing", "line-height-px"];
@@ -884,48 +853,6 @@ var addTextPropertiesToObject = function (object, elementObject, elementid) {
 }
 
 
-var generateStyleAttribute = function (elem) {
-
-  var attributes = "";
-
-  var keys = Object.keys(elem);
-
-  for (var i = 0; i < keys.length; i++) {
-
-    var key = keys[i];
-
-    if (key == "style") {
-
-      var styleKeys = Object.keys(elem[key]);
-
-      if (styleKeys.length > 0) {
-
-        attributes += " style='";
-
-        for (var s = 0; s < styleKeys.length; s++) {
-
-          var k = styleKeys[s];
-
-          attributes += k + ": " + elem[key][k] + "; ";
-
-        }
-
-        attributes += "'";
-
-      }
-
-    } else {
-
-      attributes += " " + key + "='" + elem[key] + "'";
-
-    }
-
-  }
-
-  return attributes;
-
-}
-
 var generateRgbaString = function (color_object) {
 
   var r = 0;
@@ -961,6 +888,7 @@ var generateRgbaString = function (color_object) {
 
 }
 
+
 var getElementLeftPosition = function (object, parentX, closestParentX) {
 
   if (parentX != null) {
@@ -986,6 +914,7 @@ var getElementLeftPosition = function (object, parentX, closestParentX) {
   }
 
 }
+
 
 var getElementTopPosition = function (object, parentY, closestParentY) {
 
@@ -1039,11 +968,13 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
 
 }
 
+
 var toKebabCase = function (s) {
 
   return s.replace(/(?:^|\.?)([A-Z])/g, function (x, y) { return "-" + y.toLowerCase() }).replace(/^-/, "");
 
 }
+
 
 var escapeHtml = function (unsafe) {
   return unsafe
@@ -1053,6 +984,7 @@ var escapeHtml = function (unsafe) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
 
 // для разработки  (подгрузка шрифтов) 
 var buildLoadedFontsString = function (fonts) {
@@ -1070,6 +1002,7 @@ var buildLoadedFontsString = function (fonts) {
   return fontsString;
 
 }
+
 
 app.listen(PORT, function () {
   console.log("Express is listening at port: " + PORT);
