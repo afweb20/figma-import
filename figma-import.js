@@ -199,7 +199,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
             var ar = arrayOfCharArrays[i];
             var key = ar[0];
-            child[childTextElementid]["style"] = generateTextStyles(object, key);
+            child[childTextElementid]["style"] = generateTextStyles(null, object, key);
 
             var lastIndex = ar.length + prevIndex;
             var text = string.substring(prevIndex, lastIndex);
@@ -227,31 +227,28 @@ var generateElementObject = async function (object, project_id, node_id, closest
         } else {
           
           // TODO обработать 
-          /*
-
+          
           var text = string;
           var match = /\r|\n/.exec(text);
-          var attributes = setTextAttributes(object, key);
+          var style = elementObject[elementid]["style"];
+
+          elementObject[elementid]["style"] = generateTextStyles(style, object, key);
 
           if (match) {
-
+            
             text = text.replace(/(?:\r\n|\r|\n)/g, '');
 
-            var htmStr = "<div " + attributes + ">";
-            htmStr += escapeHtml(text);
-            htmStr += "</div>";
+            elementObject[elementid]["tag"] = "div";
 
           } else {
 
-            var htmStr = "<span " + attributes + ">";
-            htmStr += escapeHtml(text);
-            htmStr += "</span>";
+            elementObject[elementid]["tag"] = "span";
 
           }
 
-          html += htmStr;
+          elementObject[elementid]["text"] = escapeHtml(text);
 
-          */
+         
 
         }
 
@@ -263,148 +260,6 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
 
   return elementObject;
-
-
-  var html = "<div " + attributes + ">";
-
-  if (object["children"]) {
-
-    if (object["children"].length > 0) {
-
-      if (object.absoluteBoundingBox) {
-        if (object.absoluteBoundingBox.x) {
-          closest_parent_x = object.absoluteBoundingBox.x;
-        }
-      }
-
-      if (object.absoluteBoundingBox) {
-        if (object.absoluteBoundingBox.y) {
-          closest_parent_y = object.absoluteBoundingBox.y;
-        }
-      }
-
-      for (var i = 0; i < object["children"].length; i++) {
-
-        html += await renderHtml(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y);
-
-      }
-
-    }
-
-  } else {
-
-    if (type == "TEXT") {
-
-      if (object.characters) {
-
-        var string = object.characters;
-        var array_of_arrs = [];
-        var prev = null;
-
-        if (object.characterStyleOverrides) {
-          if (object.characterStyleOverrides.length > 0) {
-
-            for (var i = 0; i < object.characterStyleOverrides.length; i++) {
-
-              if (prev == null) {
-
-                var arr = [];
-                arr.push(object.characterStyleOverrides[i]);
-                array_of_arrs.push(arr);
-
-              } else {
-
-                if (prev != object.characterStyleOverrides[i]) {
-
-                  var arr = [];
-                  arr.push(object.characterStyleOverrides[i]);
-                  array_of_arrs.push(arr);
-
-                } else {
-
-                  arr.push(object.characterStyleOverrides[i]);
-
-                }
-
-              }
-
-              prev = object.characterStyleOverrides[i];
-
-            }
-
-          }
-        }
-
-        if (array_of_arrs.length > 0) {
-
-          var prevIndex = 0;
-          for (var i = 0; i < array_of_arrs.length; i++) {
-
-            var ar = array_of_arrs[i];
-            var key = ar[0];
-            var lastIndex = ar.length + prevIndex;
-            var text = string.substring(prevIndex, lastIndex);
-            var match = /\r|\n/.exec(text);
-            var attributes = setTextAttributes(object, key);
-
-            if (match) {
-
-              text = text.replace(/(?:\r\n|\r|\n)/g, '');
-
-              var htmStr = "<div " + attributes + ">";
-              htmStr += escapeHtml(text);
-              htmStr += "</div>";
-
-            } else {
-
-              var htmStr = "<span " + attributes + ">";
-              htmStr += escapeHtml(text);
-              htmStr += "</span>";
-
-            }
-
-            prevIndex = ar.length;
-
-            html += htmStr;
-
-          }
-
-        } else {
-
-          var text = string;
-          var match = /\r|\n/.exec(text);
-          var attributes = setTextAttributes(object, key);
-
-          if (match) {
-
-            text = text.replace(/(?:\r\n|\r|\n)/g, '');
-
-            var htmStr = "<div " + attributes + ">";
-            htmStr += escapeHtml(text);
-            htmStr += "</div>";
-
-          } else {
-
-            var htmStr = "<span " + attributes + ">";
-            htmStr += escapeHtml(text);
-            htmStr += "</span>";
-
-          }
-
-          html += htmStr;
-
-        }
-
-      }
-
-    }
-
-  }
-
-  html += "</div>";
-
-  return html;
-
 
 }
 
@@ -843,10 +698,13 @@ var setHtmlAttributes = function (elementid, sitecontent) {
 }
 
 
-var generateTextStyles = function (object, key) {
+var generateTextStyles = function (style, object, key) {
 
   var availableStyles = ["font-family", "font-weight", "font-size", "letter-spacing", "line-height-px"];
-  var style = {};
+
+  if (!style) {
+    style = {};
+  }
 
   // добавляем цвет тексту 
   if (object.fills) {
