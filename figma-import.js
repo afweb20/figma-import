@@ -52,28 +52,7 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
   });
 
-    // var sitecontent = [];
-    // var elementid = generateElementid(32);
-
-
-    // if (response.data) {
-    //   if (response.data.nodes) {
-    //     if (response.data.nodes[nodeId]) {
-    //       if (response.data.nodes[nodeId].document) {
-
-    //         sitecontent = generateSitecontent(response.data.nodes[nodeId].document, nodeId, elementid);
-
-    //       }
-    //     }
-    //   }
-    // }
-
-    // var html = "<div>";
-    // html += "</div>";
-    // html += "<div> " + JSON.stringify(sitecontent) + "</div>";
-
-    var htmlBlock = await renderHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, images);
-
+    var htmlBlock = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null); 
 
     // для разработки (подгрузка шрифтов)
     if (loadedFonts.length > 0) {
@@ -107,19 +86,75 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
 });
 
 
-var renderHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y) {
+var generateElementObject = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid) {
 
   var type = object.type; //type есть  всегда
-  var sitecontent = {}; 
-  var elementid = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
+  var elementObject = {};
+  // var sitecontent = {}; 
 
-  sitecontent[elementid] = {};
-  sitecontent[elementid]["nodeid"] = object.id;
-  sitecontent[elementid]["classes"] = "b-" + type.toLowerCase();
-  sitecontent[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y);
+  if (!elementid) {
+    elementid = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
+  }
 
-  // var attributes = setHtmlAttributes(object, project_id, node_id, closest_parent_x, closest_parent_y);
-  var attributes = setHtmlAttributes(elementid, sitecontent);
+  // sitecontent[elementid] = {};
+  // sitecontent[elementid]["nodeid"] = object.id;
+  // sitecontent[elementid]["classes"] = "b-" + type.toLowerCase();
+  // sitecontent[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y);
+
+  // // var attributes = setHtmlAttributes(object, project_id, node_id, closest_parent_x, closest_parent_y);
+  // var attributes = setHtmlAttributes(elementid, sitecontent);
+
+  elementObject[elementid] = {};
+  elementObject[elementid]["tag"] = "div";
+  elementObject[elementid]["nodeid"] = object.id;
+  elementObject[elementid]["classes"] = "b-" + type.toLowerCase();
+  elementObject[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y);
+
+  if (object["children"]) {
+
+    if (object["children"].length > 0) {
+
+      if (object.absoluteBoundingBox) {
+
+        if (object.absoluteBoundingBox.x) {
+          closest_parent_x = object.absoluteBoundingBox.x;
+        }
+
+        if (object.absoluteBoundingBox.y) {
+          closest_parent_y = object.absoluteBoundingBox.y;
+        }
+        
+      }
+
+      elementObject[elementid]["children"] = [];
+
+      for (var i = 0; i < object["children"].length; i++) {
+
+        var child = await generateElementObject(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null);
+
+        elementObject[elementid]["children"].push(child);
+
+      }
+
+    }
+
+  } else {
+
+    if (type == "TEXT") {
+
+      if (object.characters) {
+
+
+
+      }
+
+    }
+
+  }
+
+
+  return elementObject;
+
 
   var html = "<div " + attributes + ">";
 
@@ -261,6 +296,90 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
   return html;
 
+
+}
+
+
+var getHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid) {
+
+  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid);
+
+  var keys = Object.keys(elementObject);
+
+  if (keys.length > 0) {
+
+    for (var i = 0; i < keys.length; i++) {
+
+      var k = keys[i];
+
+      var html = generateHtmlElement(k, elementObject[k]);
+
+    }
+
+  }
+
+
+  function generateHtmlElement (elementid, element) {
+
+    var tag = element["tag"];
+
+    var htmElement = "<" + tag;
+    htmElement += " class=\"" + element["classes"] + "\"";
+    htmElement += " elementid=\"" + elementid + "\"";
+    htmElement += " node-id=\"" + element["nodeid"] + "\""; // исключить в будущем
+
+    var styleKeys = Object.keys(element["style"]);
+
+    if (styleKeys.length > 0) {
+  
+      htmElement += " style=\"";
+  
+      for (var i = 0; i < styleKeys.length; i++) {
+  
+        var k = styleKeys[i];
+  
+        htmElement += k + ": " + element["style"][k] + "; " ;
+  
+      }
+  
+      htmElement += "\""; 
+  
+    }
+
+    htmElement += ">";
+
+      if (element.children) {
+
+        for (var p = 0; p < element.children.length; p++) {
+
+          var child = element.children[p];
+
+          var childKeys = Object.keys(child);
+
+          if (childKeys.length > 0) {
+
+            for (var m = 0; m < childKeys.length; m++) {
+
+              var key = childKeys[m];
+
+              htmElement += generateHtmlElement(key, child[key]);
+
+            }
+
+          }
+
+
+        }
+
+      }
+
+    htmElement += "</" + tag + ">";
+
+    return htmElement
+
+  }
+
+  return html;
 
 }
 
