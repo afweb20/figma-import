@@ -107,24 +107,19 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
 });
 
 
-
 var renderHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y) {
 
-  var closestParentX = closest_parent_x;
-  var closestParentY = closest_parent_y;
   var type = object.type; //type есть  всегда
   var sitecontent = {}; 
+  var elementid = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
 
-  // формируем картинку для векторных элементов
-  if (type == "VECTOR" || type == "REGULAR_POLYGON") {
+  sitecontent[elementid] = {};
+  sitecontent[elementid]["nodeid"] = object.id;
+  sitecontent[elementid]["classes"] = "b-" + type.toLowerCase();
+  sitecontent[elementid]["style"] = await createSitecontentStyles(object, project_id);
 
-    // для вектора формируем картинку, иначе никак 
-    // генерация картинки из элемента
-    object.imageUrl = await generateImageFromElement(project_id, object.id); 
-    
-  }
-  
-  var attributes = setHtmlAttributes(object, project_id, node_id, closestParentX, closestParentY);
+  // var attributes = setHtmlAttributes(object, project_id, node_id, closest_parent_x, closest_parent_y);
+  var attributes = setHtmlAttributes(elementid, sitecontent);
 
   var html = "<div " + attributes + ">";
 
@@ -134,19 +129,19 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
       if (object.absoluteBoundingBox) {
         if (object.absoluteBoundingBox.x) {
-          closestParentX = object.absoluteBoundingBox.x;
+          closest_parent_x = object.absoluteBoundingBox.x;
         }
       }
 
       if (object.absoluteBoundingBox) {
         if (object.absoluteBoundingBox.y) {
-          closestParentY = object.absoluteBoundingBox.y;
+          closest_parent_y = object.absoluteBoundingBox.y;
         }
       }
 
       for (var i = 0; i < object["children"].length; i++) {
 
-        html += await renderHtml(object["children"][i], project_id, node_id, closestParentX, closestParentY);
+        html += await renderHtml(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y);
 
       }
 
@@ -266,7 +261,9 @@ var renderHtml = async function (object, project_id, node_id, closest_parent_x, 
 
   return html;
 
+
 }
+
 
 var generateImageFromElement = async function (project_id, object_id) {
 
@@ -301,6 +298,39 @@ var generateImageFromElement = async function (project_id, object_id) {
 }
 
 
+var createSitecontentStyles = async function (object, project_id) {
+
+  var type = object.type;
+  var style = {};
+  style["box-sizing"] = "border-box";
+
+  // формируем картинку для векторных элементов
+  if (type == "VECTOR" || type == "REGULAR_POLYGON") {
+
+    // для вектора формируем картинку, иначе никак 
+    // генерация картинки из элемента
+    var image = await generateImageFromElement(project_id, object.id); 
+    style["background-image"] = "url(" + image + ")";
+    style["background-repeat"] = "no-repeat";
+    
+  }
+
+  return style;
+  
+}
+
+
+var setHtmlAttributes = function (elementid, sitecontent) {
+
+  var attributes = " class=\"" + sitecontent[elementid]["classes"] + "\"";
+  attributes += " elementid=\"" + elementid + "\"";
+  attributes += " node-id=\"" + sitecontent[elementid]["nodeid"] + "\""; // исключить в будущем
+
+  return attributes;
+
+}
+
+
 var generateElementid = function (len, charSet) {
 
   var i, randomPoz, randomString;
@@ -317,7 +347,7 @@ var generateElementid = function (len, charSet) {
 
 }
 
-var setHtmlAttributes = function (object, project_id, node_id, closestParentX, closestParentY) {
+var setHtmlAttributes2 = function (object, project_id, node_id, closestParentX, closestParentY) {
 
   var elem = {};
   var type = object.type; // type - присутствует всегда
