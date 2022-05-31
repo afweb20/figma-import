@@ -96,7 +96,7 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
 });
 
 
-var generateElementObject = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid) {
+var generateElementObject = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, parent) {
 
   var type = object.type; //type есть  всегда
   var elementObject = {};
@@ -109,7 +109,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
   elementObject[elementid]["tag"] = "div";
   elementObject[elementid]["nodeid"] = object.id;
   elementObject[elementid]["classes"] = "b-" + type.toLowerCase();
-  elementObject[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y);
+  elementObject[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y, parent);
 
   if (object["children"]) {
 
@@ -129,9 +129,11 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
       elementObject[elementid]["children"] = [];
 
+      parent = elementObject[elementid];
+
       for (var i = 0; i < object["children"].length; i++) {
 
-        var child = await generateElementObject(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null);
+        var child = await generateElementObject(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null, parent);
 
         elementObject[elementid]["children"].push(child);
 
@@ -161,7 +163,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
 var getHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid) {
 
-  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid);
+  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null);
 
   var keys = Object.keys(elementObject);
 
@@ -256,7 +258,7 @@ var getHtml = async function (object, project_id, node_id, closest_parent_x, clo
 
 var getSitecontent = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid) {
 
-  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid);
+  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null);
 
   var sitecontent = {};
 
@@ -356,7 +358,7 @@ var generateImageFromElement = async function (project_id, object_id) {
 }
 
 
-var createSitecontentStyles = async function (object, project_id, node_id, closest_parent_x, closest_parent_y) {
+var createSitecontentStyles = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, parent) {
 
   var type = object.type;
   var style = {};
@@ -379,11 +381,6 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
     style["overflow"] = "hidden";  //элементы могут выходить за пределы frame, поэтому overflow: hidden нужен
   } else {
     style["position"] = "absolute";
-  }
-
-  // TODO придумать что-то с маской, нужно предыдущему элементу ставить тот же css 
-  if (object.isMask) {
-
   }
 
   // размеры и позиционирование элемента (left && top)
@@ -623,6 +620,33 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
     }
 
+
+  }
+
+  // Если маска, то применить часть стилей к родителю
+  if (object.isMask) {
+
+    parent["style"]["overflow"] = "hidden";
+
+    if (style["border-radius"]) {
+      parent["style"]["border-radius"] = style["border-radius"];
+    }
+
+    if (style["border-top-left-radius"]) {
+      parent["style"]["border-top-left-radius"] = style["border-top-left-radius"];
+    }
+
+    if (style["border-top-right-radius"]) {
+      parent["style"]["border-top-right-radius"] = style["border-top-right-radius"];
+    }
+
+    if (style["border-bottom-right-radius"]) {
+      parent["style"]["border-bottom-right-radius"] = style["border-bottom-right-radius"];
+    }
+
+    if (style["border-bottom-left-radius"]) {
+      parent["style"]["border-bottom-left-radius"] = style["border-bottom-left-radius"];
+    }
 
   }
 
