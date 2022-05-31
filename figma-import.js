@@ -402,11 +402,11 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
     }
 
     if (object.absoluteBoundingBox.width) {
-      style["width"] = object.absoluteBoundingBox.width.toString() + "px";
+      style["width"] = object.absoluteBoundingBox.width.toFixed(0) + "px";
     }
 
     if (object.absoluteBoundingBox.height) {
-      style["height"] = object.absoluteBoundingBox.height.toString() + "px";
+      style["height"] = object.absoluteBoundingBox.height.toFixed(0) + "px";
     }
 
   }
@@ -956,11 +956,11 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
 
           var topClosestParent = closestParentY + Math.abs(parentY);
 
-          return (top - topClosestParent) + "px";
+          return (top - topClosestParent).toFixed(0) + "px";
 
         } else {
 
-          return top + "px";
+          return top.toFixed(0) + "px";
 
         }
 
@@ -973,11 +973,11 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
 
           var topClosestParent = closestParentY - Math.abs(parentY);
 
-          return (top - topClosestParent) + "px";
+          return (top - topClosestParent).toFixed(0) + "px";
 
         } else {
 
-          return top + "px";
+          return top.toFixed(0) + "px";
 
         }
 
