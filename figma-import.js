@@ -196,14 +196,14 @@ var generateElementObject = async function (object, project_id, node_id, closest
             var child = {};
             child[childTextElementid] = {};
             child[childTextElementid]["classes"] = "b-text-string";
-            child[childTextElementid]["style"] = {};
 
             var ar = arrayOfCharArrays[i];
             var key = ar[0];
+            child[childTextElementid]["style"] = generateTextStyles(object, key);
+
             var lastIndex = ar.length + prevIndex;
             var text = string.substring(prevIndex, lastIndex);
             var match = /\r|\n/.exec(text);
-            // var attributes = setTextAttributes(object, key);
 
             if (match) {
 
@@ -437,7 +437,7 @@ var getHtml = async function (object, project_id, node_id, closest_parent_x, clo
     htmElement += " elementid=\"" + elementid + "\"";
 
     if (element["nodeid"]) {
-      
+
       htmElement += " node-id=\"" + element["nodeid"] + "\""; // исключить в будущем
 
     }
@@ -843,11 +843,10 @@ var setHtmlAttributes = function (elementid, sitecontent) {
 }
 
 
-var setTextAttributes = function (object, key) {
+var generateTextStyles = function (object, key) {
 
   var availableStyles = ["font-family", "font-weight", "font-size", "letter-spacing", "line-height-px"];
-  var elem = {};
-  elem["style"] = {};
+  var style = {};
 
   // добавляем цвет тексту 
   if (object.fills) {
@@ -858,7 +857,7 @@ var setTextAttributes = function (object, key) {
 
         if (object.fills[0].color) {
 
-          elem["style"]["color"] = generateRgbaString(object.fills[0].color);
+          style["color"] = generateRgbaString(object.fills[0].color);
 
         }
 
@@ -907,11 +906,11 @@ var setTextAttributes = function (object, key) {
 
         if (kebabKey == "line-height" || kebabKey == "font-size" || kebabKey == "letter-spacing") {
 
-          elem["style"][kebabKey] = styles[k].toFixed(0) + "px";
+          style[kebabKey] = styles[k].toFixed(0) + "px";
 
         } else if (kebabKey == "font-family") {
 
-          elem["style"][kebabKey] = "\"" + styles[k] + "\"";
+          style[kebabKey] = "\'" + styles[k] + "\'";
 
           // для разработки  (подгрузка шрифтов)
           var fontString = styles[k].replace(/\s/g, "+");
@@ -921,7 +920,7 @@ var setTextAttributes = function (object, key) {
 
         } else {
 
-          elem["style"][kebabKey] = styles[k];
+          style[kebabKey] = styles[k];
 
         }
 
@@ -935,7 +934,7 @@ var setTextAttributes = function (object, key) {
 
           if (color.type.toLowerCase() == "solid") {
 
-            elem["style"]["color"] = generateRgbaString(color.color);
+            style["color"] = generateRgbaString(color.color);
 
           }
 
@@ -948,7 +947,7 @@ var setTextAttributes = function (object, key) {
 
   }
 
-  return generateStyleAttribute(elem);
+  return style;
 
 };
 
