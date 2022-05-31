@@ -53,7 +53,6 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
   });
 
-  // var htmlBlock = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
 
   if (req.params.view == "sitecontent") {
 
@@ -101,19 +100,10 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
   var type = object.type; //type есть  всегда
   var elementObject = {};
-  // var sitecontent = {}; 
 
   if (!elementid) {
     elementid = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
   }
-
-  // sitecontent[elementid] = {};
-  // sitecontent[elementid]["nodeid"] = object.id;
-  // sitecontent[elementid]["classes"] = "b-" + type.toLowerCase();
-  // sitecontent[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y);
-
-  // // var attributes = setHtmlAttributes(object, project_id, node_id, closest_parent_x, closest_parent_y);
-  // var attributes = setHtmlAttributes(elementid, sitecontent);
 
   elementObject[elementid] = {};
   elementObject[elementid]["tag"] = "div";
@@ -268,7 +258,67 @@ var getSitecontent = async function (object, project_id, node_id, closest_parent
 
   var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid);
 
-  return "";
+  var sitecontent = {};
+
+  var keys = Object.keys(elementObject);
+
+  if (keys.length > 0) {
+
+    for (var i = 0; i < keys.length; i++) {
+
+      var k = keys[i];
+
+      sitecontent[k] = generateSitecontent(elementObject[k]);
+
+    }
+
+  }
+
+  function generateSitecontent(element) {
+
+    var content = {};
+
+    if (element["classes"]) {
+      content["classes"] = element["classes"];
+    }
+
+    if (element["style"]) {
+      content["style"] = element["style"];
+    }
+
+    if (element["text"]) {
+      content["text"] = element["text"];
+    }
+
+    if (element.children) {
+
+      for (var p = 0; p < element.children.length; p++) {
+
+        var child = element.children[p];
+
+        var childKeys = Object.keys(child);
+
+        if (childKeys.length > 0) {
+
+          for (var m = 0; m < childKeys.length; m++) {
+
+            var key = childKeys[m];
+
+            sitecontent[key] = generateSitecontent(child[key]);
+
+          }
+
+        }
+
+      }
+
+    }
+
+    return content;
+
+  }
+
+  return sitecontent;
 
 }
 
