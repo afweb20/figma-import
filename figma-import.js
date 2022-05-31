@@ -1,11 +1,11 @@
 const PERSONAL_ACCESS_TOKEN = "367581-50354355-43eb-4834-a520-da304dbe7ae3";
 const PORT = 8000;
 
-// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/636:3/2 - зеленый фон с лого фо ру
-// http://localhost:8000/dms5Vr9yGfK445F3mncTz9/1%3A2/2 - webmoney video landing
-// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/757%3A26/2 - webmoney files landing
-// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/811%3A10684/2 - дом доменов
-// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/811%3A28/2 - cashbox
+// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/636:3/html - зеленый фон с лого фо ру
+// http://localhost:8000/dms5Vr9yGfK445F3mncTz9/1%3A2/html - webmoney video landing
+// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/757%3A26/html - webmoney files landing
+// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/811%3A10684/html - дом доменов
+// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/811%3A28/html - cashbox
 
 
 var express = require("express");
