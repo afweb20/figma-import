@@ -52,36 +52,36 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
   });
 
-    var htmlBlock = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null); 
+  var htmlBlock = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
 
-    // для разработки (подгрузка шрифтов)
-    if (loadedFonts.length > 0) {
-      loadedFontsString = buildLoadedFontsString(loadedFonts);
+  // для разработки (подгрузка шрифтов)
+  if (loadedFonts.length > 0) {
+    loadedFontsString = buildLoadedFontsString(loadedFonts);
+  }
+
+  fs.readFile('views/index.html', 'utf8', function (err, data) {
+
+    if (err) {
+      return console.log(err);
     }
 
-    fs.readFile('views/index.html', 'utf8', function (err,data) {
+    // Только для отображения для разработки, потом нужно убрать 
+    if (req.params.view == 0) {
+      content = response.data.nodes[req.params.node_id].document;
+    } else if (req.params.view == 1) {
+      // content = html;
+    } else if (req.params.view == 2) {
+      content = htmlBlock; // визуально html
+    }
 
-      if (err) {
-        return console.log(err);
-      }
+    // для разработки
+    data = data.replace(/\<\/head>/g, loadedFontsString + '</head>');
 
-      // Только для отображения для разработки, потом нужно убрать 
-      if (req.params.view == 0) {
-        content = response.data.nodes[req.params.node_id].document;
-      } else if (req.params.view == 1) {
-        // content = html;
-      } else if (req.params.view == 2) {
-        content = htmlBlock; // визуально html
-      }
+    data = data.replace(/\<\/body>/g, content + '</body>');
 
-      // для разработки
-      data = data.replace(/\<\/head>/g, loadedFontsString + '</head>');
+    res.send(data);
 
-      data = data.replace(/\<\/body>/g, content + '</body>');
-
-      res.send(data);
-
-    });
+  });
 
 });
 
@@ -123,7 +123,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
         if (object.absoluteBoundingBox.y) {
           closest_parent_y = object.absoluteBoundingBox.y;
         }
-        
+
       }
 
       elementObject[elementid]["children"] = [];
@@ -145,6 +145,115 @@ var generateElementObject = async function (object, project_id, node_id, closest
       if (object.characters) {
 
 
+        var string = object.characters;
+        var arrayOfCharArrays = [];
+        var prev = null;
+
+        if (object.characterStyleOverrides) {
+          if (object.characterStyleOverrides.length > 0) {
+
+            for (var i = 0; i < object.characterStyleOverrides.length; i++) {
+
+              if (prev == null) {
+
+                var arr = [];
+                arr.push(object.characterStyleOverrides[i]);
+                arrayOfCharArrays.push(arr);
+
+              } else {
+
+                if (prev != object.characterStyleOverrides[i]) {
+
+                  var arr = [];
+                  arr.push(object.characterStyleOverrides[i]);
+                  arrayOfCharArrays.push(arr);
+
+                } else {
+
+                  arr.push(object.characterStyleOverrides[i]);
+
+                }
+
+              }
+
+              prev = object.characterStyleOverrides[i];
+
+            }
+
+          }
+        }
+
+        if (arrayOfCharArrays.length > 0) {
+
+          elementObject[elementid]["children"] = [];
+
+          var prevIndex = 0;
+
+          for (var i = 0; i < arrayOfCharArrays.length; i++) {
+
+            var index = i + 1;
+            var childTextElementid = elementid + "_text" + index;
+            var child = {};
+            child[childTextElementid] = {};
+            child[childTextElementid]["classes"] = "b-text-string";
+            child[childTextElementid]["style"] = {};
+
+            var ar = arrayOfCharArrays[i];
+            var key = ar[0];
+            var lastIndex = ar.length + prevIndex;
+            var text = string.substring(prevIndex, lastIndex);
+            var match = /\r|\n/.exec(text);
+            // var attributes = setTextAttributes(object, key);
+
+            if (match) {
+
+              text = text.replace(/(?:\r\n|\r|\n)/g, '');
+              child[childTextElementid]["tag"] = "div";
+
+            } else {
+
+              child[childTextElementid]["tag"] = "span";
+
+            }
+
+            child[childTextElementid]["text"] = escapeHtml(text);
+
+            prevIndex = ar.length;
+
+            elementObject[elementid]["children"].push(child);
+
+          }
+
+        } else {
+          
+          // TODO обработать 
+          /*
+
+          var text = string;
+          var match = /\r|\n/.exec(text);
+          var attributes = setTextAttributes(object, key);
+
+          if (match) {
+
+            text = text.replace(/(?:\r\n|\r|\n)/g, '');
+
+            var htmStr = "<div " + attributes + ">";
+            htmStr += escapeHtml(text);
+            htmStr += "</div>";
+
+          } else {
+
+            var htmStr = "<span " + attributes + ">";
+            htmStr += escapeHtml(text);
+            htmStr += "</span>";
+
+          }
+
+          html += htmStr;
+
+          */
+
+        }
 
       }
 
@@ -205,7 +314,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
               } else {
 
-                if ( prev != object.characterStyleOverrides[i] ) {
+                if (prev != object.characterStyleOverrides[i]) {
 
                   var arr = [];
                   arr.push(object.characterStyleOverrides[i]);
@@ -255,7 +364,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
             }
 
             prevIndex = ar.length;
-            
+
             html += htmStr;
 
           }
@@ -281,7 +390,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
             htmStr += "</span>";
 
           }
-          
+
           html += htmStr;
 
         }
@@ -319,59 +428,70 @@ var getHtml = async function (object, project_id, node_id, closest_parent_x, clo
   }
 
 
-  function generateHtmlElement (elementid, element) {
+  function generateHtmlElement(elementid, element) {
 
     var tag = element["tag"];
 
     var htmElement = "<" + tag;
     htmElement += " class=\"" + element["classes"] + "\"";
     htmElement += " elementid=\"" + elementid + "\"";
-    htmElement += " node-id=\"" + element["nodeid"] + "\""; // исключить в будущем
+
+    if (element["nodeid"]) {
+      
+      htmElement += " node-id=\"" + element["nodeid"] + "\""; // исключить в будущем
+
+    }
 
     var styleKeys = Object.keys(element["style"]);
 
     if (styleKeys.length > 0) {
-  
+
       htmElement += " style=\"";
-  
+
       for (var i = 0; i < styleKeys.length; i++) {
-  
+
         var k = styleKeys[i];
-  
-        htmElement += k + ": " + element["style"][k] + "; " ;
-  
+
+        htmElement += k + ": " + element["style"][k] + "; ";
+
       }
-  
-      htmElement += "\""; 
-  
+
+      htmElement += "\"";
+
     }
 
     htmElement += ">";
 
-      if (element.children) {
+    if (element.children) {
 
-        for (var p = 0; p < element.children.length; p++) {
+      for (var p = 0; p < element.children.length; p++) {
 
-          var child = element.children[p];
+        var child = element.children[p];
 
-          var childKeys = Object.keys(child);
+        var childKeys = Object.keys(child);
 
-          if (childKeys.length > 0) {
+        if (childKeys.length > 0) {
 
-            for (var m = 0; m < childKeys.length; m++) {
+          for (var m = 0; m < childKeys.length; m++) {
 
-              var key = childKeys[m];
+            var key = childKeys[m];
 
-              htmElement += generateHtmlElement(key, child[key]);
-
-            }
+            htmElement += generateHtmlElement(key, child[key]);
 
           }
 
-
         }
 
+
       }
+
+    }
+
+    if (element["text"]) {
+
+      htmElement += element["text"];
+
+    }
 
     htmElement += "</" + tag + ">";
 
@@ -428,20 +548,20 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
     // для вектора формируем картинку, иначе никак 
     // генерация картинки из элемента
-    var image = await generateImageFromElement(project_id, object.id); 
+    var image = await generateImageFromElement(project_id, object.id);
     style["background-image"] = "url(" + image + ")";
     style["background-repeat"] = "no-repeat";
-    
+
   }
 
   // добавляем position 
-  if (object.id == node_id) { 
+  if (object.id == node_id) {
     style["position"] = "relative"; //самый первый родитель, то есть - главный frame 
     style["overflow"] = "hidden";  //элементы могут выходить за пределы frame, поэтому overflow: hidden нужен
   } else {
     style["position"] = "absolute";
   }
-  
+
   // TODO придумать что-то с маской, нужно предыдущему элементу ставить тот же css 
   if (object.isMask) {
 
@@ -449,7 +569,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
   // размеры и позиционирование элемента (left && top)
   if (object.absoluteBoundingBox) {
-    
+
     if (object.id == node_id) {
 
       parentX = object.absoluteBoundingBox.x;
@@ -459,7 +579,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
       // высчитывать позицию, если родитель не x=0 & y=0, т е если iframe смещен
 
-      style["left"] = getElementLeftPosition(object, parentX, closest_parent_x); 
+      style["left"] = getElementLeftPosition(object, parentX, closest_parent_x);
       style["top"] = getElementTopPosition(object, parentY, closest_parent_y);
 
     }
@@ -482,7 +602,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
     if (fills) {
       if (fills.length > 0) {
 
-        for (var i=0; i < fills.length; i++) {
+        for (var i = 0; i < fills.length; i++) {
 
           var fill = fills[i];
           var fillType = fill.type;
@@ -505,7 +625,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
           if (fillType == "IMAGE") {
 
             if (fill.imageRef) {
-             
+
               if (images) {
 
                 if (images[fill.imageRef]) {
@@ -545,12 +665,12 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
               var rad = Math.atan2(deltaY, deltaX); // In radians
 
               var deg = rad * (180 / Math.PI)
-              
+
 
               var gradient = "linear-gradient(";
               gradient += deg + "deg, ";
 
-              for (var i=0; i < fill.gradientStops.length; i++) {
+              for (var i = 0; i < fill.gradientStops.length; i++) {
 
                 gradient += generateRgbaString(fill.gradientStops[i].color);
 
@@ -565,7 +685,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
               style["background-image"] = gradient;
 
             }
-          
+
           }
 
           // добавляем прозрачность, если задана прозрачность фона
@@ -576,7 +696,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
           }
 
         }
-        
+
       }
 
     }
@@ -593,7 +713,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
   // добавляем эффекты (тени и тд)
   if (object.effects) {
 
-    for (var i = 0; i < object.effects.length; i++ ) {
+    for (var i = 0; i < object.effects.length; i++) {
 
       var effect = object.effects[i];
 
@@ -618,7 +738,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
     style["text-align"] = "center";
 
     if (object.constraints) {
-      
+
       if (object.constraints.horizontal) {
 
         if (object.constraints.horizontal == "LEFT") {
@@ -679,7 +799,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
       if (object.strokeWeight) {
 
         style["border-width"] = object.strokeWeight + "px";
-    
+
       }
 
     }
@@ -688,7 +808,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
   }
 
   return style;
-  
+
 }
 
 
@@ -709,11 +829,11 @@ var setHtmlAttributes = function (elementid, sitecontent) {
 
       var k = styleKeys[i];
 
-      attributes += k + ": " + sitecontent[elementid]["style"][k] + "; " ;
+      attributes += k + ": " + sitecontent[elementid]["style"][k] + "; ";
 
     }
 
-    attributes += "\""; 
+    attributes += "\"";
 
   }
 
@@ -723,14 +843,14 @@ var setHtmlAttributes = function (elementid, sitecontent) {
 }
 
 
-var setTextAttributes = function(object, key) {
+var setTextAttributes = function (object, key) {
 
   var availableStyles = ["font-family", "font-weight", "font-size", "letter-spacing", "line-height-px"];
   var elem = {};
   elem["style"] = {};
 
   // добавляем цвет тексту 
-  if (object.fills) { 
+  if (object.fills) {
 
     if (object.fills.length == 1) {
 
@@ -768,7 +888,7 @@ var setTextAttributes = function(object, key) {
 
   }
 
-  function styles (styles) {
+  function styles(styles) {
 
     var keys = Object.keys(styles);
 
@@ -859,9 +979,9 @@ var generateStyleAttribute = function (elem) {
         }
 
         attributes += "'";
-        
+
       }
-      
+
     } else {
 
       attributes += " " + key + "='" + elem[key] + "'";
@@ -911,7 +1031,7 @@ var generateRgbaString = function (color_object) {
 
 var getElementLeftPosition = function (object, parentX, closestParentX) {
 
-  if (parentX != null){
+  if (parentX != null) {
 
     if (object.absoluteBoundingBox.x != closestParentX) {
 
@@ -937,12 +1057,12 @@ var getElementLeftPosition = function (object, parentX, closestParentX) {
 
 var getElementTopPosition = function (object, parentY, closestParentY) {
 
-  if (parentY != null){
+  if (parentY != null) {
 
     if (object.absoluteBoundingBox.y != closestParentY) {
 
       // если позиция iframe по y < 0
-      if ( parentY < 0 ) {
+      if (parentY < 0) {
 
         var top = object.absoluteBoundingBox.y + Math.abs(parentY);
 
@@ -989,17 +1109,17 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
 
 var toKebabCase = function (s) {
 
-  return s.replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "-" + y.toLowerCase()}).replace(/^-/, "");
+  return s.replace(/(?:^|\.?)([A-Z])/g, function (x, y) { return "-" + y.toLowerCase() }).replace(/^-/, "");
 
 }
 
 var escapeHtml = function (unsafe) {
   return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 // для разработки  (подгрузка шрифтов) 
