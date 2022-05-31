@@ -102,6 +102,21 @@ var generateElementObject = async function (object, project_id, node_id, closest
   var type = object.type; //type есть  всегда
   var elementObject = {};
 
+  var visible = true;
+
+  if (object.hasOwnProperty("visible")) {
+    
+    visible = object.visible;
+
+  } 
+
+  if (!visible) {
+
+    return false;
+
+  }
+  
+
   if (!elementid) {
     elementid = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
   }
@@ -155,7 +170,6 @@ var generateElementObject = async function (object, project_id, node_id, closest
     }
 
   }
-
 
   return elementObject;
 
