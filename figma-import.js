@@ -446,7 +446,19 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
               if (fill.color) {
 
-                style["background-color"] = generateRgbaString(fill.color);
+                var visibleFill = true;
+
+                if (fill.hasOwnProperty("visible")) {
+                  
+                  visibleFill = fill.visible;
+              
+                } 
+              
+                if (visibleFill) {
+              
+                  style["background-color"] = generateRgbaString(fill.color);
+              
+                }
 
               }
 
@@ -635,7 +647,6 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
       }
 
     }
-
 
   }
 
