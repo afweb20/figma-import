@@ -346,7 +346,7 @@ var generateImageFromElement = async function (project_id, object_id) {
 
   var responseVectorImage = await axios({
     method: "get",
-    url: "https://api.figma.com/v1/images/" + project_id + "?ids=" + object_id,
+    url: "https://api.figma.com/v1/images/" + project_id + "?ids=" + object_id ,
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
   })
 
@@ -490,7 +490,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
           }
 
-          if (fillType == "GRADIENT_LINEAR") {
+          if (fillType == "GRADIENT_LINEAR" || fillType == "GRADIENT_RADIAL") {
 
             needImageCreation = true;
 
@@ -578,6 +578,10 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
       style["border-bottom-left-radius"] = object.rectangleCornerRadii[3] + "px";
     }
 
+  }
+
+  if (type == "RECTANGLE" || type == "FRAME" || type == "ELLIPSE") {
+
     // добавляем бордер
     if (object.strokes) {
 
@@ -657,7 +661,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
 var generateTextStyles = function (style, object, key) {
 
-  var availableStyles = ["font-family", "font-weight", "font-size", "letter-spacing", "line-height-px"];
+  // var availableStyles = ["font-family", "font-weight", "font-size", "letter-spacing", "line-height-px"];
 
   if (!style) {
     style = {};
@@ -686,76 +690,6 @@ var generateTextStyles = function (style, object, key) {
 
     styles(object.style);
 
-    if (object.style.textCase) {
-
-      var textCase = object.style.textCase;
-
-      if (textCase == "UPPER") {
-
-        style["text-transform"] = "uppercase"; 
-
-      }
-
-      if (textCase == "LOWER") {
-
-        style["text-transform"] = "lowercase"; 
-
-      }
-
-      if (textCase == "TITLE") {
-
-        style["text-transform"] = "capitalize"; 
-
-      }
-      
-    }
-
-    if (object.style.textAlignHorizontal) {
-
-      var textAlignHorizontal = object.style.textAlignHorizontal;
-
-      if (textAlignHorizontal == "LEFT") {
-
-        style["text-align"] = "left"; 
-
-      }
-
-      if (textAlignHorizontal == "RIGHT") {
-
-        style["text-align"] = "right"; 
-        
-      }
-
-      if (textAlignHorizontal == "CENTER") {
-
-        style["text-align"] = "center"; 
-        
-      }
-
-      if (textAlignHorizontal == "JUSTIFIED") {
-
-        style["text-align"] = "justify"; 
-        
-      }
-
-    }
-
-    if (object.style.fontSize) {
-
-      var fontSize = object.style.fontSize;
-
-      if (isOdd(fontSize)) {
-
-        fontSize--;
-
-      }
-
-      style["font-size"] = fontSize + "px"; 
-
-    }
-
-    function isOdd(num) { return num % 2;}
-
   }
 
   if (key) {
@@ -779,37 +713,137 @@ var generateTextStyles = function (style, object, key) {
     for (var i = 0; i < keys.length; i++) {
 
       var k = keys[i];
-      var kebabKey = toKebabCase(k);
+      // var kebabKey = toKebabCase(k);
 
-      if (availableStyles.indexOf(kebabKey) > -1) {
+      // if (availableStyles.indexOf(kebabKey) > -1) {
 
-        if (kebabKey == "line-height-px") {
+      //   if (kebabKey == "line-height-px") {
 
-          kebabKey = "line-height";
+      //     kebabKey = "line-height";
 
-        }
+      //   }
 
-        if (kebabKey == "line-height" || kebabKey == "letter-spacing") {
+      //   if (kebabKey == "line-height" || kebabKey == "letter-spacing") {
 
-          style[kebabKey] = styles[k].toFixed(0) + "px";
+      //     style[kebabKey] = styles[k].toFixed(0) + "px";
 
-        } else if (kebabKey == "font-family") {
+      //   } else if (kebabKey == "font-family") {
 
-          style[kebabKey] = "\'" + styles[k] + "\'";
+      //     style[kebabKey] = "\'" + styles[k] + "\'";
 
-          // для разработки  (подгрузка шрифтов)
-          var fontString = styles[k].replace(/\s/g, "+");
-          if (loadedFonts.indexOf(fontString) == -1) {
-            loadedFonts.push(fontString);
-          }
+      //     // для разработки  (подгрузка шрифтов)
+      //     var fontString = styles[k].replace(/\s/g, "+");
+      //     if (loadedFonts.indexOf(fontString) == -1) {
+      //       loadedFonts.push(fontString);
+      //     }
 
-        } else {
+      //   } else {
 
-          style[kebabKey] = styles[k];
+      //     style[kebabKey] = styles[k];
 
+      //   }
+
+      // }
+
+      if (k == "fontFamily") {
+
+        style["font-family"] = "\'" + styles[k] + "\'";
+
+        // для разработки  (подгрузка шрифтов)
+        var fontString = styles[k].replace(/\s/g, "+");
+        if (loadedFonts.indexOf(fontString) == -1) {
+          loadedFonts.push(fontString);
         }
 
       }
+
+      if (k == "fontWeight") {
+
+        style["font-weight"] = styles[k];
+        
+      }
+
+      if (k == "letterSpacing") {
+
+        style["letter-spacing"] = styles[k].toFixed(0) + "px";
+
+      }
+
+      if (k == "lineHeightPx") {
+        
+        style["line-height"] = styles[k].toFixed(0) + "px";
+
+      }
+
+      if (k == "textCase") {
+
+        var textCase = styles.textCase;
+  
+        if (textCase == "UPPER") {
+  
+          style["text-transform"] = "uppercase"; 
+  
+        }
+  
+        if (textCase == "LOWER") {
+  
+          style["text-transform"] = "lowercase"; 
+  
+        }
+  
+        if (textCase == "TITLE") {
+  
+          style["text-transform"] = "capitalize"; 
+  
+        }
+        
+      }
+      
+      if (k == "textAlignHorizontal") {
+  
+        var textAlignHorizontal = styles.textAlignHorizontal;
+  
+        if (textAlignHorizontal == "LEFT") {
+  
+          style["text-align"] = "left"; 
+  
+        }
+  
+        if (textAlignHorizontal == "RIGHT") {
+  
+          style["text-align"] = "right"; 
+          
+        }
+  
+        if (textAlignHorizontal == "CENTER") {
+  
+          style["text-align"] = "center"; 
+          
+        }
+  
+        if (textAlignHorizontal == "JUSTIFIED") {
+  
+          style["text-align"] = "justify"; 
+          
+        }
+  
+      }
+
+      if (k == "fontSize") {
+  
+        var fontSize = styles.fontSize;
+  
+        if (isOdd(fontSize)) {
+  
+          fontSize--;
+  
+        }
+  
+        style["font-size"] = fontSize + "px"; 
+  
+      }
+  
+      function isOdd(num) { return num % 2;}
 
       if (k == "fills") {
 
