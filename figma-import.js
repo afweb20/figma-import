@@ -874,7 +874,7 @@ var addTextPropertiesToObject = function (object, elementObject, elementid) {
 
       if (match) {
 
-        text = text.replace(/(?:\r\n|\r|\n)/g, '');
+        text = text.replace(/(?:\r\n|\r|\n)/g, ' ');
         child[childTextElementid]["tag"] = "div";
 
       } else {
@@ -885,7 +885,7 @@ var addTextPropertiesToObject = function (object, elementObject, elementid) {
 
       child[childTextElementid]["text"] = escapeHtml(text);
 
-      prevIndex = ar.length;
+      prevIndex += ar.length;
 
       elementObject[elementid]["children"].push(child);
 
