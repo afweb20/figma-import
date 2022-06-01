@@ -713,37 +713,6 @@ var generateTextStyles = function (style, object, key) {
     for (var i = 0; i < keys.length; i++) {
 
       var k = keys[i];
-      // var kebabKey = toKebabCase(k);
-
-      // if (availableStyles.indexOf(kebabKey) > -1) {
-
-      //   if (kebabKey == "line-height-px") {
-
-      //     kebabKey = "line-height";
-
-      //   }
-
-      //   if (kebabKey == "line-height" || kebabKey == "letter-spacing") {
-
-      //     style[kebabKey] = styles[k].toFixed(0) + "px";
-
-      //   } else if (kebabKey == "font-family") {
-
-      //     style[kebabKey] = "\'" + styles[k] + "\'";
-
-      //     // для разработки  (подгрузка шрифтов)
-      //     var fontString = styles[k].replace(/\s/g, "+");
-      //     if (loadedFonts.indexOf(fontString) == -1) {
-      //       loadedFonts.push(fontString);
-      //     }
-
-      //   } else {
-
-      //     style[kebabKey] = styles[k];
-
-      //   }
-
-      // }
 
       if (k == "fontFamily") {
 
@@ -1093,13 +1062,6 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
     }
 
   }
-
-}
-
-
-var toKebabCase = function (s) {
-
-  return s.replace(/(?:^|\.?)([A-Z])/g, function (x, y) { return "-" + y.toLowerCase() }).replace(/^-/, "");
 
 }
 
