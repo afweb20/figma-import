@@ -25,7 +25,7 @@ var loadedFonts = [];
 var loadedFontsString = "";
 
 
-app.get("/:project_id/:node_id/:view", async function (req, res) {
+app.get("/:project_id/:node_id/:type", async function (req, res) {
 
   var projectId = req.params.project_id;
   var nodeId = req.params.node_id;
@@ -55,12 +55,12 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
   });
 
 
-  if (req.params.view == "sitecontent") {
+  if (req.params.type == "sitecontent") {
 
     content = await getSitecontent(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
     res.send(content);
 
-  } else if (req.params.view == "html") {
+  } else if (req.params.type == "html") {
 
     fs.readFile('views/index.html', 'utf8', async function (err, data) {
 
@@ -84,7 +84,7 @@ app.get("/:project_id/:node_id/:view", async function (req, res) {
 
     });
 
-  } else if (req.params.view == "himalaya") {
+  } else if (req.params.type == "himalaya") {
 
     html = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
     var json = himalaya.parse(html);
