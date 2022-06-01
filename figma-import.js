@@ -704,6 +704,30 @@ var generateTextStyles = function (style, object, key) {
 
     styles(object.style);
 
+    if (object.style.textCase) {
+
+      var textCase = object.style.textCase;
+
+      if (textCase == "UPPER") {
+
+        style["text-transform"] = "uppercase"; 
+
+      }
+
+      if (textCase == "LOWER") {
+
+        style["text-transform"] = "lowercase"; 
+
+      }
+
+      if (textCase == "TITLE") {
+
+        style["text-transform"] = "capitalize"; 
+
+      }
+      
+    }
+
   }
 
   if (key) {
