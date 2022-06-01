@@ -801,12 +801,15 @@ var generateTextStyles = function (style, object, key) {
       if (k == "fontSize") {
   
         var fontSize = styles.fontSize;
+
+        //уменьшение текста на 1 пункт, чтобы всегда помещался в контейнер
+        fontSize--;
   
-        if (isOdd(fontSize)) {
+        // if (isOdd(fontSize)) {
   
-          fontSize--;
+        //   fontSize--;
   
-        }
+        // }
   
         style["font-size"] = fontSize + "px"; 
   
