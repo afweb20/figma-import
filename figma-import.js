@@ -578,23 +578,6 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
   // для текста 
   if (type == "TEXT") {
 
-    // TODO проверить добавляем горизонтальное выравнивание
-    style["text-align"] = "center";
-
-    if (object.constraints) {
-
-      if (object.constraints.horizontal) {
-
-        if (object.constraints.horizontal == "LEFT") {
-
-          style["text-align"] = object.constraints.horizontal.toLowerCase();
-
-        }
-
-      }
-
-    }
-
   }
 
   // для эллипса 
@@ -737,6 +720,36 @@ var generateTextStyles = function (style, object, key) {
 
       }
       
+    }
+
+    if (object.style.textAlignHorizontal) {
+
+      var textAlignHorizontal = object.style.textAlignHorizontal;
+
+      if (textAlignHorizontal == "LEFT") {
+
+        style["text-align"] = "left"; 
+
+      }
+
+      if (textAlignHorizontal == "RIGHT") {
+
+        style["text-align"] = "right"; 
+        
+      }
+
+      if (textAlignHorizontal == "CENTER") {
+
+        style["text-align"] = "center"; 
+        
+      }
+
+      if (textAlignHorizontal == "JUSTIFIED") {
+
+        style["text-align"] = "justify"; 
+        
+      }
+
     }
 
   }
@@ -911,7 +924,7 @@ var addTextPropertiesToObject = function (object, elementObject, elementid) {
 
     if (match) {
       
-      text = text.replace(/(?:\r\n|\r|\n)/g, '');
+      text = text.replace(/(?:\r\n|\r|\n)/g, ' ');
 
       elementObject[elementid]["tag"] = "div";
 
