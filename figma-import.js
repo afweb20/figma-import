@@ -565,7 +565,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
   }
 
   // для прямоугольника 
-  if (type == "RECTANGLE") {
+  if (type == "RECTANGLE" || type == "FRAME") {
 
     if (object.cornerRadius) {
       style["border-radius"] = object.cornerRadius + "px";
@@ -585,24 +585,35 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
         var stroke = object.strokes[0];
 
-        if (stroke.type) {
+        var visibleStroke = true;
 
-          style["border-style"] = stroke.type.toLowerCase();
+        if (stroke.hasOwnProperty("visible")) {
+          
+          visibleStroke = stroke.visible;
+      
+        } 
+      
+        if (visibleStroke) {
+      
+          if (stroke.type) {
+
+            style["border-style"] = stroke.type.toLowerCase();
+
+          }
+
+          if (stroke.color) {
+
+            style["border-color"] = generateRgbaString(stroke.color);
+
+          }
+
+          if (object.strokeWeight) {
+
+            style["border-width"] = object.strokeWeight + "px";
+    
+          }
 
         }
-
-        if (stroke.color) {
-
-          style["border-color"] = generateRgbaString(stroke.color);
-
-        }
-
-      }
-
-
-      if (object.strokeWeight) {
-
-        style["border-width"] = object.strokeWeight + "px";
 
       }
 
