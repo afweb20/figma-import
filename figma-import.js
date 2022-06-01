@@ -379,17 +379,6 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
   var style = {};
   style["box-sizing"] = "border-box";
 
-  // формируем картинку для векторных элементов
-  if (type == "VECTOR" || type == "REGULAR_POLYGON") {
-
-    // для вектора формируем картинку, иначе никак 
-    // генерация картинки из элемента
-    var image = await generateImageFromElement(project_id, object.id);
-    style["background-image"] = "url(" + image + ")";
-    style["background-repeat"] = "no-repeat";
-
-  }
-
   // добавляем position 
   if (object.id == node_id) {
     style["position"] = "relative"; //самый первый родитель, то есть - главный frame 
@@ -422,6 +411,18 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
     if (object.absoluteBoundingBox.height) {
       style["height"] = object.absoluteBoundingBox.height.toFixed(0) + "px";
     }
+
+  }
+
+  // формируем картинку для векторных элементов
+  if (type == "VECTOR" || type == "REGULAR_POLYGON") {
+
+    // для вектора формируем картинку, иначе никак 
+    // генерация картинки из элемента
+    var image = await generateImageFromElement(project_id, object.id);
+    style["background-image"] = "url(" + image + ")";
+    style["background-repeat"] = "no-repeat";
+    style["background-size"] = style["width"] + " " + style["height"];
 
   }
 
