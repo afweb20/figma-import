@@ -379,6 +379,14 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
   var style = {};
   style["box-sizing"] = "border-box";
 
+  var needImageCreation = false;
+
+  if (type == "VECTOR" || type == "REGULAR_POLYGON") {
+
+    needImageCreation = true;
+
+  }
+
   // добавляем position 
   if (object.id == node_id) {
     style["position"] = "relative"; //самый первый родитель, то есть - главный frame 
@@ -414,17 +422,6 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
   }
 
-  // формируем картинку для векторных элементов
-  if (type == "VECTOR" || type == "REGULAR_POLYGON") {
-
-    // для вектора формируем картинку, иначе никак 
-    // генерация картинки из элемента
-    var image = await generateImageFromElement(project_id, object.id);
-    style["background-image"] = "url(" + image + ")";
-    style["background-repeat"] = "no-repeat";
-    style["background-size"] = style["width"] + " " + style["height"];
-
-  }
 
   // добавляем фон (у vector & plygon добавляется фоновое изображение, фоновый цвет не нужен)
   if (type != "TEXT" && type != "VECTOR" && type != "REGULAR_POLYGON") {
@@ -493,42 +490,9 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
           }
 
-          // TODO поправить градиент 
           if (fillType == "GRADIENT_LINEAR") {
 
-            if (fill.gradientStops) {
-
-              var x1 = fill.gradientHandlePositions[0]["x"];
-              var y1 = fill.gradientHandlePositions[0]["y"];
-
-              var x2 = fill.gradientHandlePositions[1]["x"];
-              var y2 = fill.gradientHandlePositions[1]["y"];
-
-              var deltaX = x2 - x1;
-              var deltaY = y2 - y1;
-              var rad = Math.atan2(deltaY, deltaX); // In radians
-
-              var deg = rad * (180 / Math.PI)
-
-
-              var gradient = "linear-gradient(";
-              gradient += deg + "deg, ";
-
-              for (var i = 0; i < fill.gradientStops.length; i++) {
-
-                gradient += generateRgbaString(fill.gradientStops[i].color);
-
-                if (i != fill.gradientStops.length - 1) {
-                  gradient += ", ";
-                }
-
-              }
-
-              gradient += ")";
-
-              style["background-image"] = gradient;
-
-            }
+            needImageCreation = true;
 
           }
 
@@ -544,6 +508,19 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
       }
 
     }
+
+  }
+
+
+  // формируем картинку для векторных элементов
+  if (needImageCreation) {
+
+    // для вектора формируем картинку, иначе никак 
+    // генерация картинки из элемента
+    var image = await generateImageFromElement(project_id, object.id);
+    style["background-image"] = "url(" + image + ")";
+    style["background-repeat"] = "no-repeat";
+    style["background-size"] = style["width"] + " " + style["height"];
 
   }
 
