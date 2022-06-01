@@ -740,6 +740,22 @@ var generateTextStyles = function (style, object, key) {
 
     }
 
+    if (object.style.fontSize) {
+
+      var fontSize = object.style.fontSize;
+
+      if (isOdd(fontSize)) {
+
+        fontSize--;
+
+      }
+
+      style["font-size"] = fontSize + "px"; 
+
+    }
+
+    function isOdd(num) { return num % 2;}
+
   }
 
   if (key) {
@@ -773,7 +789,7 @@ var generateTextStyles = function (style, object, key) {
 
         }
 
-        if (kebabKey == "line-height" || kebabKey == "font-size" || kebabKey == "letter-spacing") {
+        if (kebabKey == "line-height" || kebabKey == "letter-spacing") {
 
           style[kebabKey] = styles[k].toFixed(0) + "px";
 
