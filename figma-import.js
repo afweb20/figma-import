@@ -643,6 +643,8 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
     parent["style"]["overflow"] = "hidden";
 
+    style["background-color"] = "transparent";
+
     if (style["border-radius"]) {
       parent["style"]["border-radius"] = style["border-radius"];
     }
