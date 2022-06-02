@@ -25,7 +25,7 @@ var loadedFonts = [];
 var loadedFontsString = "";
 
 
-app.get("/:project_id/:node_id/:type", async function (req, res) {
+app.post("/:project_id/:node_id/:type", async function (req, res) {
 
   var projectId = req.params.project_id;
   var nodeId = req.params.node_id;
