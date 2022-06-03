@@ -1,34 +1,24 @@
 const PERSONAL_ACCESS_TOKEN = "367581-50354355-43eb-4834-a520-da304dbe7ae3";
 const PORT = 8000;
 
-// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/636:3/html - зеленый фон с лого фо ру
-// http://localhost:8000/dms5Vr9yGfK445F3mncTz9/1%3A2/html - webmoney video landing
-// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/757%3A26/html - webmoney files landing
-// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/811%3A10684/html - дом доменов
-// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/811%3A28/html - cashbox
-// http://localhost:8000/vfcLzhPe3Aowdak3AZPXK8/821%3A42/html - кусочек с files
-
-
 var express = require("express");
 var app = express();
-var router = express.Router();
 var axios = require("axios");
-const { json } = require("express");
 var parentX = null;
 var parentY = null;
-var fs = require('fs');
 var images = null;
 var himalaya = require("himalaya");
 
-// для разработки (подгрузка шрифтов)
-var loadedFonts = [];
-var loadedFontsString = "";
-
+var worker;
 
 app.post("/:project_id/:node_id/:type", async function (req, res) {
 
   var projectId = req.params.project_id;
   var nodeId = req.params.node_id;
+
+  // var worker = new Worker("figma-import-worker.js");
+
+  // worker.onmessage = recievedWorkerMessage;
 
   // получение картинок
   var responseimg = await axios({
@@ -54,45 +44,27 @@ app.post("/:project_id/:node_id/:type", async function (req, res) {
     headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
   });
 
+  var data = {};
+  data.type = req.params.type;
 
   if (req.params.type == "sitecontent") {
 
-    content = await getSitecontent(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
-    res.send(content);
+    data.content = await getSitecontent(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
 
   } else if (req.params.type == "html") {
 
-    fs.readFile('views/index.html', 'utf8', async function (err, data) {
-
-      if (err) {
-        return console.log(err);
-      }
-
-      content = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
-
-      // для разработки (подгрузка шрифтов)
-      if (loadedFonts.length > 0) {
-        loadedFontsString = buildLoadedFontsString(loadedFonts);
-      }
-
-      // для разработки
-      data = data.replace(/\<\/head>/g, loadedFontsString + '</head>');
-
-      data = data.replace(/\<\/body>/g, content + '</body>');
-
-      res.send(data);
-
-    });
+    data.content = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
+    data.fonts = loadedFonts;
 
   } else if (req.params.type == "himalaya") {
 
     html = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
     var json = himalaya.parse(html);
-    content = json;
-    res.send(content);
+    data.content = json;
 
   }
 
+  res.send(data);
 
 });
 
@@ -1067,24 +1039,6 @@ var escapeHtml = function (unsafe) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
-}
-
-
-// для разработки  (подгрузка шрифтов) 
-var buildLoadedFontsString = function (fonts) {
-
-  var fontsString = "";
-
-  for (var i = 0; i < fonts.length; i++) {
-
-    var font = fonts[i];
-
-    fontsString += "<link href=\"https://fonts.googleapis.com/css2?family=" + font + ":ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400;1,500;1,600;1,700;1,800&&display=swap\" rel=\"stylesheet\">";
-
-  }
-
-  return fontsString;
-
 }
 
 
