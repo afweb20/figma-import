@@ -1,4 +1,3 @@
-const PERSONAL_ACCESS_TOKEN = "367581-50354355-43eb-4834-a520-da304dbe7ae3";
 const PORT = 8000;
 
 var express = require("express");
@@ -8,13 +7,15 @@ var parentX = null;
 var parentY = null;
 var images = null;
 var himalaya = require("himalaya");
+var loadedFonts = [];
 
 var worker;
 
-app.post("/:project_id/:node_id/:type", async function (req, res) {
+app.post("/:figma_token/:project_id/:node_id/:type", async function (req, res) {
 
   var projectId = req.params.project_id;
   var nodeId = req.params.node_id;
+  var figmaToken = req.params.figma_token;
 
   // var worker = new Worker("figma-import-worker.js");
 
@@ -24,7 +25,7 @@ app.post("/:project_id/:node_id/:type", async function (req, res) {
   var responseimg = await axios({
     method: "get",
     url: "https://api.figma.com/v1/files/" + projectId + "/images",
-    headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
+    headers: { "X-Figma-Token": figmaToken },
   });
 
   if (responseimg) {
@@ -41,7 +42,7 @@ app.post("/:project_id/:node_id/:type", async function (req, res) {
   var response = await axios({
     method: "get",
     url: "https://api.figma.com/v1/files/" + projectId + "/nodes?ids=" + nodeId,
-    headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
+    headers: { "X-Figma-Token": figmaToken },
   });
 
   var data = {};
@@ -49,16 +50,16 @@ app.post("/:project_id/:node_id/:type", async function (req, res) {
 
   if (req.params.type == "sitecontent") {
 
-    data.content = await getSitecontent(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
+    data.content = await getSitecontent(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null, figmaToken);
 
   } else if (req.params.type == "html") {
 
-    data.content = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
+    data.content = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null, figmaToken);
     data.fonts = loadedFonts;
 
   } else if (req.params.type == "himalaya") {
 
-    html = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null);
+    html = await getHtml(response.data.nodes[nodeId].document, projectId, nodeId, null, null, null, figmaToken);
     var json = himalaya.parse(html);
     data.content = json;
 
@@ -69,7 +70,7 @@ app.post("/:project_id/:node_id/:type", async function (req, res) {
 });
 
 
-var generateElementObject = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, parent) {
+var generateElementObject = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, parent, figma_token) {
 
   var type = object.type; //type есть  всегда
   var elementObject = {};
@@ -97,7 +98,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
   elementObject[elementid]["tag"] = "div";
   elementObject[elementid]["nodeid"] = object.id;
   elementObject[elementid]["classes"] = "b-" + type.toLowerCase();
-  elementObject[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y, parent);
+  elementObject[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y, parent, figma_token);
 
   if (object["children"]) {
 
@@ -121,7 +122,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
       for (var i = 0; i < object["children"].length; i++) {
 
-        var child = await generateElementObject(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null, parent);
+        var child = await generateElementObject(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null, parent, figma_token);
 
         elementObject[elementid]["children"].push(child);
 
@@ -148,9 +149,9 @@ var generateElementObject = async function (object, project_id, node_id, closest
 }
 
 
-var getHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid) {
+var getHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
 
-  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null);
+  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
 
   var keys = Object.keys(elementObject);
 
@@ -243,9 +244,9 @@ var getHtml = async function (object, project_id, node_id, closest_parent_x, clo
 }
 
 
-var getSitecontent = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid) {
+var getSitecontent = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
 
-  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null);
+  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
 
   var sitecontent = {};
 
@@ -312,14 +313,14 @@ var getSitecontent = async function (object, project_id, node_id, closest_parent
 }
 
 
-var generateImageFromElement = async function (project_id, object_id) {
+var generateImageFromElement = async function (figma_token, project_id, object_id) {
 
   var image = null;
 
   var responseVectorImage = await axios({
     method: "get",
     url: "https://api.figma.com/v1/images/" + project_id + "?ids=" + object_id ,
-    headers: { "X-Figma-Token": PERSONAL_ACCESS_TOKEN },
+    headers: { "X-Figma-Token": figma_token },
   })
 
   if (responseVectorImage) {
@@ -345,7 +346,7 @@ var generateImageFromElement = async function (project_id, object_id) {
 }
 
 
-var createSitecontentStyles = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, parent) {
+var createSitecontentStyles = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, parent, figma_token) {
 
   var type = object.type;
   var style = {};
@@ -489,7 +490,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
 
     // для вектора формируем картинку, иначе никак 
     // генерация картинки из элемента
-    var image = await generateImageFromElement(project_id, object.id);
+    var image = await generateImageFromElement(figma_token, project_id, object.id);
     style["background-image"] = "url(" + image + ")";
     style["background-repeat"] = "no-repeat";
     style["background-size"] = style["width"] + " " + style["height"];
