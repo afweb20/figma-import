@@ -27,7 +27,17 @@ app.post("/:figma_token/:project_id/:node_id/:type", async function (req, res) {
 
   worker.once("message", function (result) {
     // res.send(result);
-    console.log("hello", result);
+    // console.log("hello", result);
+
+    var taskId = result.task_id;
+
+    var task = tasks.filter(function(obj) {
+      return obj.task_id == taskId;
+    })[0];
+
+    task.result = result.result;
+    task.state = result.state;
+
   });
 
   worker.on("error", function (error) {
@@ -42,6 +52,17 @@ app.post("/:figma_token/:project_id/:node_id/:type", async function (req, res) {
 
 });
 
+app.get("/:task_id", async function (req, res) {
+
+  var taskId = req.params.task_id;
+
+  var task = tasks.filter(function(obj) {
+    return obj.task_id == taskId;
+  })[0];
+
+  res.send(task);
+
+});
 
 var generateRandomNumber = function (len, charSet) {
   var charSet = charSet || "0123456789";
