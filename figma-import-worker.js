@@ -6,6 +6,12 @@ var images = null;
 var himalaya = require("himalaya");
 var loadedFonts = [];
 
+parentPort.on("message", function (data) {
+
+  getFigmaContent();
+  // parentPort.postMessage({num: data.num, fib: getFib(data.num)});
+});
+
 var getFigmaContent = async function () {
 
   // получение картинок
@@ -52,7 +58,10 @@ var getFigmaContent = async function () {
 
   }
 
-  parentPort.postMessage(data);
+  workerData.result = data;
+  workerData.state = "completed";
+
+  parentPort.postMessage(workerData);
 
 }
 
@@ -1029,7 +1038,5 @@ var escapeHtml = function (unsafe) {
     .replace(/'/g, "&#039;");
 }
 
-
-getFigmaContent();
 
 
