@@ -14,6 +14,22 @@ parentPort.on("message", function (data) {
 
 var getFigmaContent = async function () {
 
+  sendStatus(5);
+
+  var intvl = setInterval(function () {
+
+    if (workerData.status <  40) {
+
+      sendStatus(workerData.status + 5);
+
+    } else {
+
+      clearInterval(intvl);
+
+    }
+
+  }, 500);
+
   // получение картинок
   var responseimg = await axios({
     method: "get",
@@ -31,6 +47,25 @@ var getFigmaContent = async function () {
     }
   }
 
+  clearInterval(intvl);
+
+  sendStatus(35);
+
+  var intvl = setInterval(function () {
+
+    if (workerData.status <  75) {
+
+      sendStatus(workerData.status + 5);
+
+    } else {
+
+      clearInterval(intvl);
+
+    }
+
+  }, 500);
+  
+
   // получение всех элементов
   var response = await axios({
     method: "get",
@@ -38,25 +73,26 @@ var getFigmaContent = async function () {
     headers: { "X-Figma-Token": workerData.figma_token },
   });
 
+
+  clearInterval(intvl);
+  sendStatus(95);
+
+
   var data = {};
   data.type = workerData.import_type;
 
-  var obString = JSON.stringify(response.data.nodes[workerData.node_id].document);
-  var ids = obString.match(/\"id\":\"(.+?)\"/g);
-  var onePart = parseInt(100 / ids.length).toFixed(0);
-
   if (data.type == "sitecontent") {
 
-    data.content = await getSitecontent(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token, onePart);
+    data.content = await getSitecontent(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
 
   } else if (data.type == "html") {
 
-    data.content = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token, onePart);
+    data.content = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
     data.fonts = loadedFonts;
 
   } else if (data.type == "himalaya") {
 
-    html = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token, onePart);
+    html = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
     var json = himalaya.parse(html);
     data.content = json;
 
@@ -71,12 +107,7 @@ var getFigmaContent = async function () {
 }
 
 
-var generateElementObject = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, parent, figma_token, onePart) {
-
-  workerData.result = null;
-  workerData.state = "pending";
-  workerData.status = parseInt(workerData.status) + parseInt(onePart);
-  parentPort.postMessage(workerData);
+var generateElementObject = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, parent, figma_token) {
 
   var type = object.type; //type есть  всегда
   var elementObject = {};
@@ -127,7 +158,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
       for (var i = 0; i < object["children"].length; i++) {
 
-        var child = await generateElementObject(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null, parent, figma_token, onePart);
+        var child = await generateElementObject(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null, parent, figma_token);
 
         elementObject[elementid]["children"].push(child);
 
@@ -154,9 +185,9 @@ var generateElementObject = async function (object, project_id, node_id, closest
 }
 
 
-var getHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token, onePart) {
+var getHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
 
-  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token, onePart);
+  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
 
   var keys = Object.keys(elementObject);
 
@@ -248,9 +279,9 @@ var getHtml = async function (object, project_id, node_id, closest_parent_x, clo
 }
 
 
-var getSitecontent = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token, onePart) {
+var getSitecontent = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
 
-  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token, onePart);
+  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
 
   var sitecontent = {};
 
@@ -1037,6 +1068,16 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
 }
 
 
+var sendStatus = function (status) {
+
+  workerData.result = null;
+  workerData.state = "pending";
+  workerData.status = status;
+  parentPort.postMessage(workerData);
+
+}
+
+
 var escapeHtml = function (unsafe) {
   return unsafe
     .replace(/&/g, "&amp;")
@@ -1045,6 +1086,5 @@ var escapeHtml = function (unsafe) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-
 
 
