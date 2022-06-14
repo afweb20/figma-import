@@ -9,7 +9,7 @@ var loadedFonts = [];
 parentPort.on("message", function (data) {
 
   getFigmaContent();
-  // parentPort.postMessage({num: data.num, fib: getFib(data.num)});
+
 });
 
 var getFigmaContent = async function () {
@@ -41,18 +41,22 @@ var getFigmaContent = async function () {
   var data = {};
   data.type = workerData.import_type;
 
+  var obString = JSON.stringify(response.data.nodes[workerData.node_id].document);
+  var ids = obString.match(/\"id\":\"(.+?)\"/g);
+  var onePart = parseInt(100 / ids.length).toFixed(0);
+
   if (data.type == "sitecontent") {
 
-    data.content = await getSitecontent(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
+    data.content = await getSitecontent(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token, onePart);
 
   } else if (data.type == "html") {
 
-    data.content = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
+    data.content = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token, onePart);
     data.fonts = loadedFonts;
 
   } else if (data.type == "himalaya") {
 
-    html = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
+    html = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token, onePart);
     var json = himalaya.parse(html);
     data.content = json;
 
@@ -60,13 +64,19 @@ var getFigmaContent = async function () {
 
   workerData.result = data;
   workerData.state = "completed";
+  workerData.status = 100;
 
   parentPort.postMessage(workerData);
 
 }
 
 
-var generateElementObject = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, parent, figma_token) {
+var generateElementObject = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, parent, figma_token, onePart) {
+
+  workerData.result = null;
+  workerData.state = "pending";
+  workerData.status = parseInt(workerData.status) + parseInt(onePart);
+  parentPort.postMessage(workerData);
 
   var type = object.type; //type есть  всегда
   var elementObject = {};
@@ -84,7 +94,6 @@ var generateElementObject = async function (object, project_id, node_id, closest
     return false;
 
   }
-
 
   if (!elementid) {
     elementid = "el" + project_id.toLowerCase() + object.id.replace(":", "x");
@@ -118,7 +127,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
       for (var i = 0; i < object["children"].length; i++) {
 
-        var child = await generateElementObject(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null, parent, figma_token);
+        var child = await generateElementObject(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null, parent, figma_token, onePart);
 
         elementObject[elementid]["children"].push(child);
 
@@ -145,9 +154,9 @@ var generateElementObject = async function (object, project_id, node_id, closest
 }
 
 
-var getHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
+var getHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token, onePart) {
 
-  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
+  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token, onePart);
 
   var keys = Object.keys(elementObject);
 
@@ -162,7 +171,6 @@ var getHtml = async function (object, project_id, node_id, closest_parent_x, clo
     }
 
   }
-
 
   function generateHtmlElement(elementid, element) {
 
@@ -240,9 +248,9 @@ var getHtml = async function (object, project_id, node_id, closest_parent_x, clo
 }
 
 
-var getSitecontent = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
+var getSitecontent = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token, onePart) {
 
-  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
+  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token, onePart);
 
   var sitecontent = {};
 

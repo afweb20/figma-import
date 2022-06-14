@@ -16,7 +16,8 @@ app.post("/:figma_token/:project_id/:node_id/:type", async function (req, res) {
     import_type: req.params.type,
     task_id: taskId,
     state: "pending",
-    result: null
+    result: null,
+    status: 0
   }
 
   tasks.push(workerData);
@@ -25,9 +26,7 @@ app.post("/:figma_token/:project_id/:node_id/:type", async function (req, res) {
 
   worker.postMessage(workerData);
 
-  worker.once("message", function (result) {
-    // res.send(result);
-    // console.log("hello", result);
+  worker.on("message", function (result) {
 
     var taskId = result.task_id;
 
@@ -37,6 +36,7 @@ app.post("/:figma_token/:project_id/:node_id/:type", async function (req, res) {
 
     task.result = result.result;
     task.state = result.state;
+    task.status = result.status;
 
   });
 
