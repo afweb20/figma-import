@@ -18,9 +18,9 @@ var getFigmaContent = async function () {
 
   var intvl = setInterval(function () {
 
-    if (workerData.status <  40) {
+    if (workerData.status <  35) {
 
-      sendStatus(workerData.status + 5);
+      sendStatus(workerData.status + 2);
 
     } else {
 
@@ -53,9 +53,9 @@ var getFigmaContent = async function () {
 
   var intvl = setInterval(function () {
 
-    if (workerData.status <  75) {
+    if (workerData.status <  50) {
 
-      sendStatus(workerData.status + 5);
+      sendStatus(workerData.status + 2);
 
     } else {
 
@@ -75,12 +75,28 @@ var getFigmaContent = async function () {
 
 
   clearInterval(intvl);
-  sendStatus(95);
+  sendStatus(50);
 
+  var mainObject = response.data.nodes[workerData.node_id].document;
+
+  var mainObjectString = JSON.stringify(mainObject);
+  var regex = /"id":"(.+?)"/g;
+  var mainObjectArray = mainObjectString.match(regex);
+
+  var counter = {};
+  counter.index = 0;
+  counter.times = 20;
+  counter.partnumber = 1;
+  counter.part = Math.ceil(mainObjectArray.length / counter.times);
+  counter.status = 50;
 
   var data = {};
-  data.sitecontent = await getSitecontent(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
-  data.html = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
+  var elementObject = await generateElementObject(counter, mainObject, workerData.project_id, workerData.node_id, null, null, null, null, workerData.figma_token);
+
+  sendStatus(95);
+
+  data.sitecontent = await getSitecontent(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
+  data.html = await getHtml(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
   data.fonts = loadedFonts;
   data.himalaya = himalaya.parse(data.html);
 
@@ -93,7 +109,15 @@ var getFigmaContent = async function () {
 }
 
 
-var generateElementObject = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, parent, figma_token) {
+var generateElementObject = async function (counter, object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, parent, figma_token) {
+
+  if (counter.index > (counter.part * counter.partnumber)) {
+
+    counter.status = counter.status + 2;
+    sendStatus(counter.status);
+    counter.partnumber++;
+
+  }
 
   var type = object.type; //type есть  всегда
   var elementObject = {};
@@ -144,7 +168,7 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
       for (var i = 0; i < object["children"].length; i++) {
 
-        var child = await generateElementObject(object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null, parent, figma_token);
+        var child = await generateElementObject(counter, object["children"][i], project_id, node_id, closest_parent_x, closest_parent_y, null, parent, figma_token);
 
         elementObject[elementid]["children"].push(child);
 
@@ -166,14 +190,16 @@ var generateElementObject = async function (object, project_id, node_id, closest
 
   }
 
+  counter.index++;
+
   return elementObject;
 
 }
 
 
-var getHtml = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
+var getHtml = async function (elementObject, object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
 
-  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
+  // var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
 
   var keys = Object.keys(elementObject);
 
@@ -265,9 +291,9 @@ var getHtml = async function (object, project_id, node_id, closest_parent_x, clo
 }
 
 
-var getSitecontent = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
+var getSitecontent = async function (elementObject, object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
 
-  var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
+  // var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
 
   var sitecontent = {};
 
