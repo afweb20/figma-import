@@ -5,7 +5,7 @@ var app = express();
 const { Worker } = require("worker_threads");
 var tasks = [];
 
-app.post("/:figma_token/:project_id/:node_id/:type", async function (req, res) {
+app.post("/:figma_token/:project_id/:node_id", async function (req, res) {
 
   var taskId = generateRandomNumber(5);
 
@@ -13,7 +13,6 @@ app.post("/:figma_token/:project_id/:node_id/:type", async function (req, res) {
     figma_token: req.params.figma_token,
     project_id: req.params.project_id,
     node_id: req.params.node_id,
-    import_type: req.params.type,
     task_id: taskId,
     state: "pending",
     result: null,
@@ -48,7 +47,7 @@ app.post("/:figma_token/:project_id/:node_id/:type", async function (req, res) {
   //   console.log(`It exited with code ${exitCode}`);
   // })
 
-  res.send(workerData);
+  res.status(200).send(workerData);
 
 });
 
@@ -60,7 +59,7 @@ app.get("/:task_id", async function (req, res) {
     return obj.task_id == taskId;
   })[0];
 
-  res.send(task);
+  res.status(200).send(task);
 
 });
 

@@ -79,24 +79,10 @@ var getFigmaContent = async function () {
 
 
   var data = {};
-  data.type = workerData.import_type;
-
-  if (data.type == "sitecontent") {
-
-    data.content = await getSitecontent(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
-
-  } else if (data.type == "html") {
-
-    data.content = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
-    data.fonts = loadedFonts;
-
-  } else if (data.type == "himalaya") {
-
-    html = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
-    var json = himalaya.parse(html);
-    data.content = json;
-
-  }
+  data.sitecontent = await getSitecontent(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
+  data.html = await getHtml(response.data.nodes[workerData.node_id].document, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
+  data.fonts = loadedFonts;
+  data.himalaya = himalaya.parse(data.html);
 
   workerData.result = data;
   workerData.state = "completed";
