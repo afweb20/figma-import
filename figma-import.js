@@ -2,12 +2,15 @@ const PORT = 8000;
 
 var express = require("express");
 var app = express();
+var cors = require('cors');
 const { Worker } = require("worker_threads");
 var tasks = [];
 
-app.post("/:figma_token/:project_id/:node_id", async function (req, res) {
+app.use(cors());
 
-  var taskId = generateRandomNumber(5);
+app.post("/:figma_token/:project_id/:node_id/:task_id", async function (req, res) {
+
+  var taskId =  req.params.task_id;
 
   var workerData = {
     figma_token: req.params.figma_token,
