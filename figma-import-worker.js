@@ -98,7 +98,9 @@ var getFigmaContent = async function () {
   data.sitecontent = await getSitecontent(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
   data.html = await getHtml(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
   data.fonts = loadedFonts;
-  data.himalaya = himalaya.parse(data.html);
+
+  var htmlHimalaya = await getHtmlHimalaya(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
+  data.himalaya = himalaya.parse(htmlHimalaya);
 
   workerData.result = data;
   workerData.state = "completed";
@@ -277,6 +279,76 @@ var getHtml = async function (elementObject, object, project_id, node_id, closes
     if (element["text"]) {
 
       htmElement += element["text"];
+
+    }
+
+    htmElement += "</" + tag + ">";
+
+    return htmElement
+
+  }
+
+  return html;
+
+}
+
+
+var getHtmlHimalaya = async function (elementObject, object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
+
+  var keys = Object.keys(elementObject);
+
+  if (keys.length > 0) {
+
+    for (var i = 0; i < keys.length; i++) {
+
+      var k = keys[i];
+
+      var html = generateHtmlElement(k, elementObject[k]);
+
+    }
+
+  }
+
+  function generateHtmlElement(elementid, element) {
+
+    var tag = element["tag"];
+
+    var htmElement = "<" + tag;
+    htmElement += " elementid=\"" + elementid + "\"";
+    htmElement += " ngClass=\"sitecontent." + elementid + ".classes\"";
+    htmElement += " ngStyle=\"sitecontent." + elementid + ".style\"";
+
+    if (element["text"]) {
+
+      htmElement += " ngModel=\"sitecontent." + elementid + ".text\"";
+      htmElement += " uiTimymce=\"tinymceOptions\"";
+
+    }
+
+    htmElement += ">";
+
+    if (element.children) {
+
+      for (var p = 0; p < element.children.length; p++) {
+
+        var child = element.children[p];
+
+        var childKeys = Object.keys(child);
+
+        if (childKeys.length > 0) {
+
+          for (var m = 0; m < childKeys.length; m++) {
+
+            var key = childKeys[m];
+
+            htmElement += generateHtmlElement(key, child[key]);
+
+          }
+
+        }
+
+
+      }
 
     }
 
