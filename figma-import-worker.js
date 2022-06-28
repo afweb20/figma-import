@@ -483,6 +483,7 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
   if (object.id == node_id) {
     style["position"] = "relative"; //самый первый родитель, то есть - главный frame 
     style["overflow"] = "hidden";  //элементы могут выходить за пределы frame, поэтому overflow: hidden нужен
+    style["margin"] = "0 auto";
   } else {
     style["position"] = "absolute";
   }
@@ -975,7 +976,7 @@ var addTextPropertiesToObject = function (object, elementObject, elementid) {
     for (var i = 0; i < arrayOfCharArrays.length; i++) {
 
       var index = i + 1;
-      var childTextElementid = elementid + "_text" + index;
+      var childTextElementid = elementid + "text" + index;
       var child = {};
       child[childTextElementid] = {};
       child[childTextElementid]["classes"] = "b-text-string";
