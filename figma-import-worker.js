@@ -145,7 +145,7 @@ var generateElementObject = async function (counter, object, project_id, node_id
   elementObject[elementid] = {};
   elementObject[elementid]["tag"] = "div";
   elementObject[elementid]["nodeid"] = object.id;
-  elementObject[elementid]["classes"] = "b-" + type.toLowerCase();
+  elementObject[elementid]["classes"] = "b-" + type.toLowerCase() + " force-significate";
   elementObject[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y, parent, figma_token);
 
   if (object["children"]) {
