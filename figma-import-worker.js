@@ -146,7 +146,7 @@ var generateElementObject = async function (counter, object, project_id, node_id
   elementObject[elementid]["tag"] = "div";
   elementObject[elementid]["nodeid"] = object.id;
   elementObject[elementid]["classes"] = "b-" + type.toLowerCase() + " force-significate";
-  elementObject[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y, parent, figma_token);
+  elementObject[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y, parent, figma_token, elementObject, elementid);
 
   if (object["children"]) {
 
@@ -325,7 +325,17 @@ var getHtmlHimalaya = async function (elementObject, object, project_id, node_id
 
     }
 
-    htmElement += ">";
+    if (tag == "img") {
+
+      htmElement += " ngSrc=\"{{sitecontent." + elementid + ".src}}\"";
+      htmElement += "/>";
+
+    } else {
+
+      htmElement += ">";
+
+    }
+
 
     if (element.children) {
 
@@ -352,7 +362,9 @@ var getHtmlHimalaya = async function (elementObject, object, project_id, node_id
 
     }
 
-    htmElement += "</" + tag + ">";
+    if (tag != "img") {
+      htmElement += "</" + tag + ">";
+    }
 
     return htmElement
 
@@ -364,8 +376,6 @@ var getHtmlHimalaya = async function (elementObject, object, project_id, node_id
 
 
 var getSitecontent = async function (elementObject, object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
-
-  // var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
 
   var sitecontent = {};
 
@@ -387,16 +397,20 @@ var getSitecontent = async function (elementObject, object, project_id, node_id,
 
     var content = {};
 
-    if (element["classes"]) {
+    if ("classes" in element) {
       content["classes"] = element["classes"];
     }
 
-    if (element["style"]) {
+    if ("style" in element) {
       content["style"] = element["style"];
     }
 
-    if (element["text"]) {
+    if ("text" in element) {
       content["text"] = element["text"];
+    }
+
+    if ("src" in element) {
+      content["src"] = element["src"];
     }
 
     if (element.children) {
@@ -465,7 +479,7 @@ var generateImageFromElement = async function (figma_token, project_id, object_i
 }
 
 
-var createSitecontentStyles = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, parent, figma_token) {
+var createSitecontentStyles = async function (object, project_id, node_id, closest_parent_x, closest_parent_y, parent, figma_token, elementObject, elementid) {
 
   var type = object.type;
   var style = {};
@@ -611,9 +625,13 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
     // для вектора формируем картинку, иначе никак 
     // генерация картинки из элемента
     var image = await generateImageFromElement(figma_token, project_id, object.id);
-    style["background-image"] = "url(" + image + ")";
-    style["background-repeat"] = "no-repeat";
-    style["background-size"] = style["width"] + " " + style["height"];
+    // style["background-image"] = "url(" + image + ")";
+    // style["background-repeat"] = "no-repeat";
+    // style["background-size"] = style["width"] + " " + style["height"];
+
+    elementObject[elementid]["tag"] = "img"
+    elementObject[elementid]["src"] = image;
+
 
   }
 
