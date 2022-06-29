@@ -145,7 +145,7 @@ var generateElementObject = async function (counter, object, project_id, node_id
   elementObject[elementid] = {};
   elementObject[elementid]["tag"] = "div";
   elementObject[elementid]["nodeid"] = object.id;
-  elementObject[elementid]["classes"] = "b-" + type.toLowerCase() + " force-significate";
+  elementObject[elementid]["classes"] = "b-" + type.toLowerCase();
   elementObject[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y, parent, figma_token, elementObject, elementid);
 
   if (object["children"]) {
@@ -579,6 +579,9 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
                 if (images[fill.imageRef]) {
 
                   style["background-image"] = "url(" + images[fill.imageRef] + ")";
+                  
+                  var cls = elementObject[elementid]["classes"];
+                  elementObject[elementid]["classes"] = cls + " force-significate";
 
                   if (fill.scaleMode == "FILL") {
                     style["background-size"] = "cover";
@@ -625,13 +628,12 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
     // для вектора формируем картинку, иначе никак 
     // генерация картинки из элемента
     var image = await generateImageFromElement(figma_token, project_id, object.id);
-    // style["background-image"] = "url(" + image + ")";
-    // style["background-repeat"] = "no-repeat";
-    // style["background-size"] = style["width"] + " " + style["height"];
 
     elementObject[elementid]["tag"] = "img"
     elementObject[elementid]["src"] = image;
 
+    var cls = elementObject[elementid]["classes"];
+    elementObject[elementid]["classes"] = cls + " force-significate";
 
   }
 
@@ -997,7 +999,7 @@ var addTextPropertiesToObject = function (object, elementObject, elementid) {
       var childTextElementid = elementid + "text" + index;
       var child = {};
       child[childTextElementid] = {};
-      child[childTextElementid]["classes"] = "b-text-string";
+      child[childTextElementid]["classes"] = "b-text-string force-significate"; 
 
       var ar = arrayOfCharArrays[i];
       var key = ar[0];
