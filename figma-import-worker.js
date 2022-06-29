@@ -321,7 +321,7 @@ var getHtmlHimalaya = async function (elementObject, object, project_id, node_id
     if (element["text"]) {
 
       htmElement += " ngModel=\"sitecontent." + elementid + ".text\"";
-      htmElement += " uiTimymce=\"tinymceOptions\"";
+      htmElement += " uiTinymce=\"tinymceOptions\"";
 
     }
 
