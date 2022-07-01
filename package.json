@@ -22,7 +22,9 @@
     "express": "^4.17.3"
   },
   "devDependencies": {
+    "form-data": "^4.0.0",
     "fs": "0.0.1-security",
-    "himalaya": "^0.3.1"
+    "himalaya": "^0.3.1",
+    "request": "^2.88.2"
   }
 }

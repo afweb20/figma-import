@@ -5,6 +5,9 @@ var parentY = null;
 var images = null;
 var himalaya = require("himalaya");
 var loadedFonts = [];
+var fs = require("fs");
+var FormData = require('form-data');
+var request = require('request');
 
 parentPort.on("message", function (data) {
 
@@ -465,6 +468,66 @@ var generateImageFromElement = async function (figma_token, project_id, object_i
         if (responseVectorImage.data.images[object_id]) {
 
           image = responseVectorImage.data.images[object_id];
+        
+
+          // var data = fs.readFile('./ada_lovelace.jpg');
+
+          // console.log(data);
+
+          var formData = new FormData();
+          formData.append("website_id", "8afea140-a87b-461f-9dd7-7469034f91cb");
+          // formData.append("image", fs.createReadStream('./ada_lovelace.jpg'));
+
+          fs.readFile('./ada_lovelace.jpg', function (err, data) {
+            var buffer = data.buffer;
+
+            formData.append('image', data, 'ada_lovelace.jpg');
+            console.log(err, data);
+
+            request({
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              },
+              uri: 'http://localhost:3000/api/v1/figmaimports/createupload',
+              body: formData,
+              method: 'POST'
+            }, function (err, res, body) {
+              //it works!
+              console.log(err, res, body);
+            });
+
+
+            //  var file = await axios.post('http://localhost:3000/api/v1/figmaimports/createupload', formData, {
+            //   headers: {
+            //     'Content-Type': 'multipart/form-data'
+            //   }
+            // }).then(function (resp){
+            //   console.log("resp", resp);
+            // }).then(function (err){
+            //   console.log("err", err);
+            // });
+
+          });
+          // const file = await fs.readFile('./ada_lovelace.jpg');
+          // formData.append('file', file, 'ada_lovelace.jpg');
+
+          // var formData = {
+          //   "website_id": "8afea140-a87b-461f-9dd7-7469034f91cb",
+          //   "image": fs.createReadStream('./ada_lovelace.jpg')
+          // }
+
+          // var file = await axios.post('http://localhost:3000/api/v1/figmaimports/createupload', formData, {
+          //   // headers: {
+          //   //   'Content-Type': 'multipart/form-data'
+          //   // }
+          // }).then(function (resp){
+          //   console.log("resp", resp);
+          // }).then(function (err){
+          //   console.log("err", err);
+          // });
+
+          console.log(formData);
+
 
         }
 
