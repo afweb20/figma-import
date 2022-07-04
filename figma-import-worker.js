@@ -449,6 +449,25 @@ var getSitecontent = async function (elementObject, object, project_id, node_id,
 }
 
 
+var getUpload = function() {
+
+  return new Promise(function (resolve, reject) {
+    var req = request.post('http://localhost:3000/api/v1/figmaimports/createupload', function (err, res, body) {
+      if (err) throw new Error(err);
+      if (res && res.statusCode == 200) {
+        resolve(body);
+      } else {
+        reject(error);
+      };
+    });
+    var form = req.form();
+    form.append("website_id", "7dc7d42a-7792-49b0-82c4-782c83ad0170");
+    form.append('image', fs.createReadStream('./ada_lovelace.jpg'));
+  });
+
+}
+
+
 var generateImageFromElement = async function (figma_token, project_id, object_id) {
 
   var image = null;
@@ -469,27 +488,18 @@ var generateImageFromElement = async function (figma_token, project_id, object_i
 
           image = responseVectorImage.data.images[object_id];
         
+          var upload = await getUpload();
+          var json = JSON.parse(upload);
 
-          const req = request.post('http://localhost:3000/api/v1/figmaimports/createupload', (err, res, body) => {
-            if (err) throw new Error(err);
-            if (res && res.statusCode == 200) {
-              console.log('Success');
-            } else {
-              console.log('Error', err);
-            };
-          });
-          const form = req.form();
-          form.append("website_id", "8afea140-a87b-461f-9dd7-7469034f91cb");
-          form.append('image', fs.createReadStream('./ada_lovelace.jpg'));
-
-
+          image = json.image_url;
+        
         }
 
       }
 
     }
 
-  }
+  } 
 
   return image;
 
@@ -645,6 +655,10 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
     // для вектора формируем картинку, иначе никак 
     // генерация картинки из элемента
     var image = await generateImageFromElement(figma_token, project_id, object.id);
+
+
+
+    console.log("hello", image);
 
     elementObject[elementid]["tag"] = "img"
     elementObject[elementid]["src"] = image;
