@@ -6,7 +6,6 @@ var images = null;
 var himalaya = require("himalaya");
 var loadedFonts = [];
 var fs = require("fs");
-var FormData = require('form-data');
 var request = require('request');
 
 parentPort.on("message", function (data) {
@@ -449,7 +448,7 @@ var getSitecontent = async function (elementObject, object, project_id, node_id,
 }
 
 
-var getUpload = function() {
+var getUpload = function(file) {
 
   return new Promise(function (resolve, reject) {
     var req = request.post('http://localhost:3000/api/v1/figmaimports/createupload', function (err, res, body) {
@@ -461,8 +460,9 @@ var getUpload = function() {
       };
     });
     var form = req.form();
-    form.append("website_id", "7dc7d42a-7792-49b0-82c4-782c83ad0170");
-    form.append('image', fs.createReadStream('./ada_lovelace.jpg'));
+    // TODO website id - убрать 
+    form.append("website_id", "ed4e4f29-e904-46b9-8b0b-319775faecd8");
+    form.append('image', file);
   });
 
 }
@@ -486,13 +486,23 @@ var generateImageFromElement = async function (figma_token, project_id, object_i
 
         if (responseVectorImage.data.images[object_id]) {
 
-          image = responseVectorImage.data.images[object_id];
-        
-          var upload = await getUpload();
-          var json = JSON.parse(upload);
+          var imageUrl = responseVectorImage.data.images[object_id];
+          var imagePath = "figma-image-" + generateRandomNumber(5) + ".png";
+          var writeStream = request(imageUrl).pipe(fs.createWriteStream(imagePath));
 
-          image = json.image_url;
+          await new Promise((resolve, reject) => {
+            writeStream.on('finish', () => {
+              resolve();  
+            }).on('error', err => {
+              reject(err);
+            });
+          });
         
+          var readStream = fs.createReadStream(imagePath);
+          var upload = await getUpload(readStream);
+          var json = JSON.parse(upload);
+          image = json.image_url;
+
         }
 
       }
@@ -655,10 +665,6 @@ var createSitecontentStyles = async function (object, project_id, node_id, close
     // для вектора формируем картинку, иначе никак 
     // генерация картинки из элемента
     var image = await generateImageFromElement(figma_token, project_id, object.id);
-
-
-
-    console.log("hello", image);
 
     elementObject[elementid]["tag"] = "img"
     elementObject[elementid]["src"] = image;
@@ -1224,3 +1230,14 @@ var escapeHtml = function (unsafe) {
 }
 
 
+var generateRandomNumber = function (len, charSet) {
+  var charSet = charSet || "0123456789";
+  var randomString = "";
+  var i = 0;
+  while (i < len) {
+    randomPoz = Math.floor(Math.random() * charSet.length);
+    randomString += charSet.substring(randomPoz, randomPoz + 1);
+    i++;
+  }
+  return randomString;
+};

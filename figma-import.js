@@ -66,17 +66,6 @@ app.get("/:task_id", async function (req, res) {
 
 });
 
-var generateRandomNumber = function (len, charSet) {
-  var charSet = charSet || "0123456789";
-  var randomString = "";
-  var i = 0;
-  while (i < len) {
-    randomPoz = Math.floor(Math.random() * charSet.length);
-    randomString += charSet.substring(randomPoz, randomPoz + 1);
-    i++;
-  }
-  return randomString;
-};
 
 app.listen(PORT, function () {
   console.log("Express is listening at port: " + PORT);
