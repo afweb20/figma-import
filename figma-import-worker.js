@@ -461,7 +461,7 @@ var getUpload = function(file) {
     });
     var form = req.form();
     // TODO website id - убрать 
-    form.append("website_id", "ed4e4f29-e904-46b9-8b0b-319775faecd8");
+    form.append("website_id", "6b6e7cbe-34fa-4495-98cf-366d7403f83a");
     form.append('image', file);
   });
 
@@ -487,7 +487,7 @@ var generateImageFromElement = async function (figma_token, project_id, object_i
         if (responseVectorImage.data.images[object_id]) {
 
           var imageUrl = responseVectorImage.data.images[object_id];
-          var imagePath = "figma-image-" + generateRandomNumber(5) + ".png";
+          var imagePath = "./figma-image-" + generateRandomNumber(5) + ".png";
           var writeStream = request(imageUrl).pipe(fs.createWriteStream(imagePath));
 
           await new Promise((resolve, reject) => {
@@ -502,6 +502,12 @@ var generateImageFromElement = async function (figma_token, project_id, object_i
           var upload = await getUpload(readStream);
           var json = JSON.parse(upload);
           image = json.image_url;
+
+          try {
+            fs.unlinkSync(imagePath)
+          } catch(err) {
+            console.error(err)
+          }
 
         }
 
