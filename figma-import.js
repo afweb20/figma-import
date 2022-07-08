@@ -1,4 +1,6 @@
 const PORT = 8000;
+const FORUHOST = "http://localhost:3000";
+const FORUTOKEN = "UI3sVyzKtTvq1CCgu0j2cASQbQvJpDUqZW8goTJse6iG";
 
 var express = require("express");
 var axios = require("axios");
@@ -38,8 +40,8 @@ app.post("/:figma_token/:project_id/:node_id/:task_id", async function (req, res
 
       const { data } = await axios({
         method: "put",
-        url: "http://localhost:3000/api/v1/figmaimports/updatejobstatus",
-        headers: { "X-Access-Token": "UI3sVyzKtTvq1CCgu0j2cASQbQvJpDUqZW8goTJse6iG" },
+        url: FORUHOST + "/api/v1/figmaimports/updatejobstatus",
+        headers: { "X-Access-Token": FORUTOKEN },
         data: {
           jobid: taskId,
           percent: result.status,
