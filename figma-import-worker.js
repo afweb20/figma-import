@@ -21,19 +21,19 @@ var getFigmaContent = async function () {
 
   sendStatus(5);
 
-  var intvl = setInterval(function () {
+  // var intvl = setInterval(function () {
 
-    if (workerData.status <  35) {
+  //   if (workerData.status <  35) {
 
-      sendStatus(workerData.status + 2);
+  //     sendStatus(workerData.status + 2);
 
-    } else {
+  //   } else {
 
-      clearInterval(intvl);
+  //     clearInterval(intvl);
 
-    }
+  //   }
 
-  }, 500);
+  // }, 500);
 
   // получение картинок
   var responseimg = await axios({
@@ -114,7 +114,6 @@ var getFigmaContent = async function () {
   // workerData.finished = true;
   // workerData.status = 100;
   // parentPort.postMessage(workerData);
-  sendStatus(100);
 
 }
 
@@ -1269,9 +1268,60 @@ var sendStatus = async function (status) {
 }
 
 
-var createBlock = function (data) {
+var createBlock = async function (block) {
 
-  console.log("hello", data);
+  // console.log("hello", data);
+  sitecontentData = [];
+
+  var keys = Object.keys(block.sitecontent);
+
+
+  for (var index = 0; index < keys.length; index++) {
+
+    var element = keys[index];
+    var obj = {};
+    obj[element] = block.sitecontent[element];
+    
+    sitecontentData.push(obj);
+    
+  }
+
+
+  try {
+
+    const { data } = await axios({
+      method: "post",
+      url: FORUHOST + "/private/createblock",
+      // headers: { "X-Access-Token": FORUTOKEN },
+      data: {
+        id: workerData.website_id,
+        page_id: null, 
+        block: {
+          content: block.himalaya[0], 
+          blocktype: "json", 
+          position: 0, 
+          sitecontent: sitecontentData
+        }
+      }
+    });
+
+    console.log(data);
+    sendStatus(100);
+
+
+  } catch (err) {
+
+      if (err.response.status === 404) {
+
+        console.log('Resource could not be found!');
+
+      } else {
+
+        console.log(err.message);
+
+      }
+      
+  }
 
 };
 
