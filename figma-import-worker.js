@@ -1,3 +1,6 @@
+const FORUHOST = "http://localhost:3000";
+const FORUTOKEN = "UI3sVyzKtTvq1CCgu0j2cASQbQvJpDUqZW8goTJse6iG";
+
 const { parentPort, workerData } = require("worker_threads");
 var axios = require("axios");
 var parentX = null;
@@ -108,6 +111,7 @@ var getFigmaContent = async function () {
   workerData.finished = true;
   workerData.status = 100;
 
+
   parentPort.postMessage(workerData);
 
 }
@@ -202,8 +206,6 @@ var generateElementObject = async function (counter, object, project_id, node_id
 
 
 var getHtml = async function (elementObject, object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, figma_token) {
-
-  // var elementObject = await generateElementObject(object, project_id, node_id, closest_parent_x, closest_parent_y, elementid, null, figma_token);
 
   var keys = Object.keys(elementObject);
 
@@ -1216,12 +1218,43 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
 }
 
 
-var sendStatus = function (status) {
+var sendStatus = async function (status) {
 
-  workerData.result = null;
-  workerData.finished = false;
-  workerData.status = status;
-  parentPort.postMessage(workerData);
+  // workerData.result = null;
+  // workerData.finished = false;
+  // workerData.status = status;
+  // parentPort.postMessage(workerData);
+
+  try {
+
+    const { data } = await axios({
+      method: "put",
+      url: FORUHOST + "/api/v1/figmaimports/updatejobstatus",
+      headers: { "X-Access-Token": FORUTOKEN },
+      data: {
+        jobid: workerData.task_id,
+        percent: status,
+        finished: false
+      }
+    });
+
+    if (!workerData.website_id) {
+
+      workerData.website_id;
+
+    }
+
+    console.log(data);
+
+  } catch (err) {
+
+      if (err.response.status === 404) {
+          console.log('Resource could not be found!');
+      } else {
+          console.log(err.message);
+      }
+      
+  }
 
 }
 
