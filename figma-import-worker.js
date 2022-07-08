@@ -21,20 +21,6 @@ var getFigmaContent = async function () {
 
   sendStatus(5);
 
-  // var intvl = setInterval(function () {
-
-  //   if (workerData.status <  35) {
-
-  //     sendStatus(workerData.status + 2);
-
-  //   } else {
-
-  //     clearInterval(intvl);
-
-  //   }
-
-  // }, 500);
-
   // получение картинок
   var responseimg = await axios({
     method: "get",
@@ -52,24 +38,7 @@ var getFigmaContent = async function () {
     }
   }
 
-  clearInterval(intvl);
-
-  sendStatus(35);
-
-  var intvl = setInterval(function () {
-
-    if (workerData.status <  50) {
-
-      sendStatus(workerData.status + 2);
-
-    } else {
-
-      clearInterval(intvl);
-
-    }
-
-  }, 500);
-  
+  sendStatus(35);  
 
   // получение всех элементов
   var response = await axios({
@@ -79,7 +48,6 @@ var getFigmaContent = async function () {
   });
 
 
-  clearInterval(intvl);
   sendStatus(50);
 
   var mainObject = response.data.nodes[workerData.node_id].document;
@@ -98,7 +66,7 @@ var getFigmaContent = async function () {
   var data = {};
   var elementObject = await generateElementObject(counter, mainObject, workerData.project_id, workerData.node_id, null, null, null, null, workerData.figma_token);
 
-  await sendStatus(95);
+  sendStatus(95);
 
   data.sitecontent = await getSitecontent(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
   data.html = await getHtml(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
@@ -107,13 +75,7 @@ var getFigmaContent = async function () {
   var htmlHimalaya = await getHtmlHimalaya(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
   data.himalaya = himalaya.parse(htmlHimalaya);
 
-
   createBlock(data);
-
-  // workerData.result = data;
-  // workerData.finished = true;
-  // workerData.status = 100;
-  // parentPort.postMessage(workerData);
 
 }
 
@@ -1220,10 +1182,6 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
 
 var sendStatus = async function (status) {
 
-  // workerData.result = null;
-  // workerData.finished = false;
-  // workerData.status = status;
-  // parentPort.postMessage(workerData);
   var finished = false;
 
   if (status == 100) {
@@ -1249,7 +1207,6 @@ var sendStatus = async function (status) {
 
     }
 
-    console.log(data);
 
   } catch (err) {
 
@@ -1270,7 +1227,6 @@ var sendStatus = async function (status) {
 
 var createBlock = async function (block) {
 
-  // console.log("hello", data);
   sitecontentData = [];
 
   var keys = Object.keys(block.sitecontent);
@@ -1292,7 +1248,6 @@ var createBlock = async function (block) {
     const { data } = await axios({
       method: "post",
       url: FORUHOST + "/private/createblock",
-      // headers: { "X-Access-Token": FORUTOKEN },
       data: {
         id: workerData.website_id,
         page_id: null, 
@@ -1305,9 +1260,7 @@ var createBlock = async function (block) {
       }
     });
 
-    console.log(data);
     sendStatus(100);
-
 
   } catch (err) {
 

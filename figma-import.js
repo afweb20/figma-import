@@ -23,19 +23,9 @@ app.post("/:figma_token/:project_id/:node_id/:task_id", async function (req, res
 
   worker.postMessage(workerData);
 
-  worker.on("message", async function (result) {
-
-
-
-  });
-
   worker.on("error", function (error) {
     res.send(error);
   });
-
-  // worker.on("exit", function (exitCode) {
-  //   console.log(`It exited with code ${exitCode}`);
-  // })
 
   res.status(200).send(workerData);
 
