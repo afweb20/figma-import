@@ -107,12 +107,13 @@ var getFigmaContent = async function () {
   var htmlHimalaya = await getHtmlHimalaya(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
   data.himalaya = himalaya.parse(htmlHimalaya);
 
-  workerData.result = data;
-  workerData.finished = true;
-  workerData.status = 100;
 
+  createBlock(data);
 
-  parentPort.postMessage(workerData);
+  // workerData.result = data;
+  // workerData.finished = true;
+  // workerData.status = 100;
+  // parentPort.postMessage(workerData);
 
 }
 
@@ -1224,6 +1225,11 @@ var sendStatus = async function (status) {
   // workerData.finished = false;
   // workerData.status = status;
   // parentPort.postMessage(workerData);
+  var finished = false;
+
+  if (status == 100) {
+    finished = true;
+  }
 
   try {
 
@@ -1234,7 +1240,7 @@ var sendStatus = async function (status) {
       data: {
         jobid: workerData.task_id,
         percent: status,
-        finished: false
+        finished: finished
       }
     });
 
@@ -1249,14 +1255,27 @@ var sendStatus = async function (status) {
   } catch (err) {
 
       if (err.response.status === 404) {
-          console.log('Resource could not be found!');
+
+        console.log('Resource could not be found!');
+
       } else {
-          console.log(err.message);
+
+        console.log(err.message);
+        
       }
       
   }
 
 }
+
+
+var createBlock = function (data) {
+
+  console.log("hello", data);
+
+  sendStatus(100);
+
+};
 
 
 var escapeHtml = function (unsafe) {
