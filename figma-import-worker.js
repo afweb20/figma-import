@@ -105,7 +105,7 @@ var getFigmaContent = async function () {
   data.himalaya = himalaya.parse(htmlHimalaya);
 
   workerData.result = data;
-  workerData.state = "completed";
+  workerData.finished = true;
   workerData.status = 100;
 
   parentPort.postMessage(workerData);
@@ -1219,7 +1219,7 @@ var getElementTopPosition = function (object, parentY, closestParentY) {
 var sendStatus = function (status) {
 
   workerData.result = null;
-  workerData.state = "pending";
+  workerData.finished = false;
   workerData.status = status;
   parentPort.postMessage(workerData);
 
