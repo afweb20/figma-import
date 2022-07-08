@@ -98,7 +98,7 @@ var getFigmaContent = async function () {
   var data = {};
   var elementObject = await generateElementObject(counter, mainObject, workerData.project_id, workerData.node_id, null, null, null, null, workerData.figma_token);
 
-  sendStatus(95);
+  await sendStatus(95);
 
   data.sitecontent = await getSitecontent(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
   data.html = await getHtml(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
@@ -114,6 +114,7 @@ var getFigmaContent = async function () {
   // workerData.finished = true;
   // workerData.status = 100;
   // parentPort.postMessage(workerData);
+  sendStatus(100);
 
 }
 
@@ -463,8 +464,7 @@ var getUpload = function(file) {
       };
     });
     var form = req.form();
-    // TODO website id - убрать 
-    form.append("website_id", "6b6e7cbe-34fa-4495-98cf-366d7403f83a");
+    form.append("website_id", workerData.website_id);
     form.append('image', file);
   });
 
@@ -1246,7 +1246,7 @@ var sendStatus = async function (status) {
 
     if (!workerData.website_id) {
 
-      workerData.website_id;
+      workerData.website_id = data.website_id;
 
     }
 
@@ -1261,7 +1261,7 @@ var sendStatus = async function (status) {
       } else {
 
         console.log(err.message);
-        
+
       }
       
   }
@@ -1272,8 +1272,6 @@ var sendStatus = async function (status) {
 var createBlock = function (data) {
 
   console.log("hello", data);
-
-  sendStatus(100);
 
 };
 
