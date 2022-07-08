@@ -36,7 +36,7 @@ var getFigmaContent = async function () {
   var responseimg = await axios({
     method: "get",
     url: "https://api.figma.com/v1/files/" + workerData.project_id + "/images",
-    headers: { "X-Figma-Token": workerData.figma_token },
+    headers: { "Authorization": "Bearer " + workerData.figma_token },
   });
 
   if (responseimg) {
@@ -72,7 +72,7 @@ var getFigmaContent = async function () {
   var response = await axios({
     method: "get",
     url: "https://api.figma.com/v1/files/" + workerData.project_id + "/nodes?ids=" + workerData.node_id,
-    headers: { "X-Figma-Token": workerData.figma_token },
+    headers: { "Authorization": "Bearer " + workerData.figma_token },
   });
 
 
@@ -475,7 +475,7 @@ var generateImageFromElement = async function (figma_token, project_id, object_i
   var responseVectorImage = await axios({
     method: "get",
     url: "https://api.figma.com/v1/images/" + project_id + "?ids=" + object_id,
-    headers: { "X-Figma-Token": figma_token },
+    headers: { "Authorization": "Bearer " + figma_token },
   })
 
   if (responseVectorImage) {
