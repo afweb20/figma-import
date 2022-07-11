@@ -114,7 +114,7 @@ var generateElementObject = async function (counter, object, project_id, node_id
   elementObject[elementid] = {};
   elementObject[elementid]["tag"] = "div";
   elementObject[elementid]["nodeid"] = object.id;
-  elementObject[elementid]["classes"] = "b-" + type.toLowerCase();
+  elementObject[elementid]["figma-element"] = type.toLowerCase();
   elementObject[elementid]["style"] = await createSitecontentStyles(object, project_id, node_id, closest_parent_x, closest_parent_y, parent, figma_token, elementObject, elementid);
 
   if (object["children"]) {
@@ -282,6 +282,7 @@ var getHtmlHimalaya = async function (elementObject, object, project_id, node_id
 
     var htmElement = "<" + tag;
     htmElement += " elementid=\"" + elementid + "\"";
+    htmElement += " figma-element=\"" + element["figma-element"] + "\"";
     htmElement += " ngClass=\"sitecontent." + elementid + ".classes\"";
     htmElement += " ngStyle=\"sitecontent." + elementid + ".style\"";
 
@@ -1006,7 +1007,8 @@ var addTextPropertiesToObject = function (object, elementObject, elementid) {
       var childTextElementid = elementid + "text" + index;
       var child = {};
       child[childTextElementid] = {};
-      child[childTextElementid]["classes"] = "b-text-string force-significate"; 
+      child[childTextElementid]["figma-element"] = "text-string"; 
+      child[childTextElementid]["classes"] = "force-significate"; 
 
       var ar = arrayOfCharArrays[i];
       var key = ar[0];
