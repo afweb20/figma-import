@@ -1,5 +1,6 @@
 const FORUHOST = "http://localhost:3000";
 const FORUTOKEN = "UI3sVyzKtTvq1CCgu0j2cASQbQvJpDUqZW8goTJse6iG";
+const FORUFONTSKEY = "4uy343y4378478nrejjkvne9803u234u3htjh54bk21209klsdfn48390hfn8**(*(fenjkqlkvbwlhbwhvbw9040943jflk12nlk21gb";
 
 const { parentPort, workerData } = require("worker_threads");
 var axios = require("axios");
@@ -75,6 +76,7 @@ var getFigmaContent = async function () {
   var htmlHimalaya = await getHtmlHimalaya(elementObject, mainObject, workerData.project_id, workerData.node_id, null, null, null, workerData.figma_token);
   data.himalaya = himalaya.parse(htmlHimalaya);
 
+  setPageFonts(data.fonts);
   createBlock(data);
 
 }
@@ -1279,6 +1281,37 @@ var createBlock = async function (block) {
   }
 
 };
+
+
+var setPageFonts = async function (fonts) {
+
+  try { 
+
+    const { data } = await axios({
+      method: "post",
+      url: FORUHOST + "/api/v1/servicemethods/setpagefonts",
+      data: {
+        siteid: workerData.website_id,
+        fonts: fonts,
+        key: FORUFONTSKEY
+      }
+    });
+
+  } catch (err) {
+
+    if (err.response.status === 404) {
+
+      console.log('Resource could not be found!');
+
+    } else {
+
+      console.log(err.message);
+
+    }
+    
+  }
+
+}
 
 
 var escapeHtml = function (unsafe) {
